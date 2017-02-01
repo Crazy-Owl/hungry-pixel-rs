@@ -1,0 +1,12 @@
+[package]
+name = "rogue"
+version = "0.1.0"
+authors = ["Crazy-Owl <stalker401@gmail.com>"]
+
+[dependencies]
+rand = "*"
+
+[dependencies.sdl2]
+version = "*"
+default-features = false
+features = ["image"]
