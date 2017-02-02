@@ -9,7 +9,24 @@ struct Engine {
     messages: LinkedList<Msg>
 }
 
+trait TEngine {
+    type Message;
+    type Model;
+
+    fn update(&mut self, msg : Self::Message) -> Option<Self::Message>;
+    fn render(&self);
+    fn process(&mut self) -> bool;
+}
+
 impl Engine {
+    fn new() -> Engine {
+        Engine { model: Model::new(), messages: LinkedList::new()}
+    }
+}
+
+impl TEngine for Engine {
+    type Message = Msg;
+    type Model = Model;
     fn update(&mut self, msg : Msg) -> Option<Msg> {
         match msg {
             Msg::NoOp => None,
@@ -45,15 +62,21 @@ struct Model {
     message: String
 }
 
+impl Model {
+    fn new() -> Model {
+        Model {state: true, message: "Hello world".to_string()}
+    }
+}
+
 // Msg
 
 #[derive(Debug)]
 enum Msg { NoOp, Exit, Change(String) }
 
 fn main() {
-    let mut model = Model {state: true, message: "Hello world".to_string()};
-    let mut engine : Engine = Engine {model: model, messages: LinkedList::new()};
+    let mut engine : Engine = Engine::new();
     engine.messages.push_back(Msg::Change("Kek".to_string()));
+    engine.messages.push_back(Msg::NoOp);
     'running: loop {
         if !engine.process() {
             break 'running;
