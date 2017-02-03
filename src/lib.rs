@@ -23,7 +23,7 @@ pub trait TEngine {
     type Model;
 
     fn update(&mut self, msg: Self::Message) -> Option<Self::Message>;
-    fn render(&self);
+    fn render(&mut self);
     fn process(&mut self) -> bool;
 }
 
@@ -73,11 +73,25 @@ impl TEngine for Engine {
         }
     }
 
-    fn render(&self) {
-        println!("{}", &self.model.message);
+    fn render(&mut self) {
+        self.renderer.clear();
+        self.renderer.present();
     }
 
     fn process(&mut self) -> bool {
+
+        for event in self.event_pump.poll_iter() {
+            use sdl2::event::Event::*;
+            use sdl2::keyboard::Keycode::*;
+
+            match event {
+                Quit {..} | KeyDown {keycode: Some(Escape), ..} => {
+                    self.messages.push_back(Msg::Exit)
+                },
+                _ => {}
+            }
+        }
+
         self.render();
         if let Some(msg) = self.messages.pop_front() {
             self.update(msg).map(|m| self.messages.push_back(m));
