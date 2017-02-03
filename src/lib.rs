@@ -1,12 +1,18 @@
 extern crate sdl2;
 
 use std::collections::linked_list::LinkedList;
+use sdl2::{EventPump, Sdl, VideoSubsystem, TimerSubsystem};
+use sdl2::render::Renderer;
+use sdl2::video::Window;
 
 // Game Engine
 
 pub struct Engine {
     pub model: Model,
     pub messages: LinkedList<Msg>,
+    pub event_pump: EventPump,
+    pub renderer: Renderer<'static>,
+    pub timer: TimerSubsystem,
 }
 
 /// Basic trait for all game engines.
@@ -21,9 +27,28 @@ pub trait TEngine {
 
 impl Engine {
     pub fn new() -> Engine {
+        let sdl_context: Sdl = sdl2::init().expect("Could not initialize SDL!");
+        let event_pump: EventPump = sdl_context.event_pump().unwrap();
+        let video_subsystem: VideoSubsystem = sdl_context.video().unwrap();
+        let timer: TimerSubsystem = sdl_context.timer().unwrap();
+        let window: Window = video_subsystem.window("SDL2 game", 800, 600)
+            .position_centered()
+            .opengl()
+            .allow_highdpi()
+            .build()
+            .expect("Could not create window!");
+
+        let renderer: Renderer<'static> = window.renderer()
+            .accelerated()
+            .build()
+            .expect("Could not aquire renderer");
+
         Engine {
             model: Model::new(),
             messages: LinkedList::new(),
+            event_pump: event_pump,
+            renderer: renderer,
+            timer: timer,
         }
     }
 }
