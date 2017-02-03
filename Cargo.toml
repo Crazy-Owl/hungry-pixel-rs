@@ -7,6 +7,7 @@ authors = ["Crazy-Owl <stalker401@gmail.com>"]
 rand = "*"
 
 [dependencies.sdl2]
-version = "*"
+branch = "master"
+git = "https://github.com/AngryLawyer/rust-sdl2"
 default-features = false
 features = ["image"]
