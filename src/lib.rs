@@ -7,23 +7,34 @@ use sdl2::video::Window;
 
 pub mod resources;
 
-// Game Engine
-
+/// Game Engine
+/// Holds all the data relevant to establishing the main game loop, to process SDL events
+/// (keyboard and mouse) etc.
 pub struct Engine {
     pub model: Model,
+    /// LinkedList for in-game messages
     pub messages: LinkedList<Msg>,
     pub event_pump: EventPump,
+    /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
 }
 
 /// Basic trait for all game engines.
+/// Has two associated types - message and model
 pub trait TEngine {
+    /// Message type is what we basically send around
     type Message;
+    /// Model is what holds all the game state inside
     type Model;
 
+    /// Update takes a single message, processes it and then optionally puts another one in queue
     fn update(&mut self, msg: Self::Message) -> Option<Self::Message>;
+    /// Render the model on screen
     fn render(&mut self);
+    /// This is where we handle all the "subscriptions" like external events:
+    /// for example, tick should occur here, SDL2 event processing should occur here.
+    /// Returned bool indicates whether the game should stop running.
     fn process(&mut self) -> bool;
 }
 
@@ -63,7 +74,7 @@ impl TEngine for Engine {
         match msg {
             Msg::NoOp => None,
             Msg::Exit => {
-                self.model.state = false;
+                self.model.running = false;
                 None
             }
             Msg::Change(x) => {
@@ -85,9 +96,8 @@ impl TEngine for Engine {
             use sdl2::keyboard::Keycode::*;
 
             match event {
-                Quit {..} | KeyDown {keycode: Some(Escape), ..} => {
-                    self.messages.push_back(Msg::Exit)
-                },
+                Quit { .. } |
+                KeyDown { keycode: Some(Escape), .. } => self.messages.push_back(Msg::Exit),
                 _ => {}
             }
         }
@@ -96,22 +106,22 @@ impl TEngine for Engine {
         if let Some(msg) = self.messages.pop_front() {
             self.update(msg).map(|m| self.messages.push_back(m));
         }
-        self.model.state
+        self.model.running
     }
 }
 
-// Model
-
+/// Model
+/// For now it just holds the message to display and running state of the game
 #[derive(Debug)]
 pub struct Model {
-    pub state: bool,
+    pub running: bool,
     pub message: String,
 }
 
 impl Model {
     pub fn new() -> Model {
         Model {
-            state: true,
+            running: true,
             message: "Hello world".to_string(),
         }
     }
