@@ -5,6 +5,8 @@ use sdl2::{EventPump, Sdl, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
 
+pub mod resources;
+
 // Game Engine
 
 pub struct Engine {
