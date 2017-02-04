@@ -18,6 +18,8 @@ pub struct Engine {
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
+    /// last update timestamp in SDL2 internal milliseconds
+    pub last_update: u32,
 }
 
 /// Basic trait for all game engines.
@@ -43,7 +45,7 @@ impl Engine {
         let sdl_context: Sdl = sdl2::init().expect("Could not initialize SDL!");
         let event_pump: EventPump = sdl_context.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.video().unwrap();
-        let timer: TimerSubsystem = sdl_context.timer().unwrap();
+        let mut timer: TimerSubsystem = sdl_context.timer().unwrap();
         let window: Window = video_subsystem.window("SDL2 game", 800, 600)
             .position_centered()
             .opengl()
@@ -56,12 +58,15 @@ impl Engine {
             .build()
             .expect("Could not aquire renderer");
 
+        let ticks = timer.ticks();
+
         Engine {
             model: Model::new(),
             messages: LinkedList::new(),
             event_pump: event_pump,
             renderer: renderer,
             timer: timer,
+            last_update: ticks,
         }
     }
 }
@@ -80,7 +85,8 @@ impl TEngine for Engine {
             Msg::Change(x) => {
                 self.model.message = x;
                 Some(Msg::Exit)
-            }
+            },
+            Msg::Tick(_) => None
         }
     }
 
@@ -127,11 +133,11 @@ impl Model {
     }
 }
 
-// Msg
-
+/// Message type
 #[derive(Debug)]
 pub enum Msg {
     NoOp,
     Exit,
     Change(String),
+    Tick(u32),
 }
