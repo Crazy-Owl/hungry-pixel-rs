@@ -7,6 +7,7 @@ use sdl2::video::Window;
 use sdl2::ttf::{Sdl2TtfContext, Font};
 
 pub mod resources;
+mod state;
 
 const FPS_LOCK : u32 = 1000 / 64;
 
@@ -43,6 +44,7 @@ pub struct Engine<'a> {
     pub font: Font<'a>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
+    pub current_state: Option<Box<state::StateT<Model=Model,Message=Msg>>>
 }
 
 /// Basic trait for all game engines.
@@ -92,6 +94,7 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
+            current_state: None
         }
     }
 }
