@@ -10,4 +10,4 @@ rand = "*"
 branch = "master"
 git = "https://github.com/AngryLawyer/rust-sdl2"
 default-features = false
-features = ["image"]
+features = ["image", "ttf"]

@@ -4,22 +4,43 @@ use std::collections::linked_list::LinkedList;
 use sdl2::{EventPump, Sdl, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
+use sdl2::ttf::{Sdl2TtfContext, Font};
 
 pub mod resources;
 
 const FPS_LOCK : u32 = 1000 / 64;
 
+/// SDL2 context
+/// Holds all SDL2 context objects and is passed by reference to ensure proper lifetimes
+pub struct SDL2Context {
+    pub sdl2: Sdl,
+    pub ttf: Sdl2TtfContext,
+}
+
+impl SDL2Context {
+    pub fn new() -> SDL2Context {
+        let sdl_context: Sdl = sdl2::init().expect("Could not initialize SDL!");
+        let ttf: Sdl2TtfContext = sdl2::ttf::init().expect("Could not initialize TTF context!");
+        SDL2Context {
+            sdl2: sdl_context,
+            ttf: ttf
+        }
+    }
+}
+
 /// Game Engine
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
 /// (keyboard and mouse) etc.
-pub struct Engine {
+pub struct Engine<'a> {
     pub model: Model,
+    pub context: &'a SDL2Context,
     /// LinkedList for in-game messages
     pub messages: LinkedList<Msg>,
     pub event_pump: EventPump,
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
+    pub font: Font<'a>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
 }
@@ -42,12 +63,12 @@ pub trait TEngine {
     fn process(&mut self) -> bool;
 }
 
-impl Engine {
-    pub fn new() -> Engine {
-        let sdl_context: Sdl = sdl2::init().expect("Could not initialize SDL!");
-        let event_pump: EventPump = sdl_context.event_pump().unwrap();
-        let video_subsystem: VideoSubsystem = sdl_context.video().unwrap();
-        let mut timer: TimerSubsystem = sdl_context.timer().unwrap();
+impl<'a> Engine<'a> {
+    pub fn new(sdl_context: &'a mut SDL2Context) -> Engine<'a> {
+        let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
+        let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
+        let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
+        let font: Font = sdl_context.ttf.load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14).unwrap();
         let window: Window = video_subsystem.window("SDL2 game", 800, 600)
             .position_centered()
             .opengl()
@@ -64,16 +85,18 @@ impl Engine {
 
         Engine {
             model: Model::new(),
+            context: sdl_context,
             messages: LinkedList::new(),
             event_pump: event_pump,
             renderer: renderer,
             timer: timer,
+            font: font,
             last_update: ticks,
         }
     }
 }
 
-impl TEngine for Engine {
+impl<'a> TEngine for Engine<'a> {
     type Message = Msg;
     type Model = Model;
 
