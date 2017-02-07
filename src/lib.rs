@@ -7,6 +7,8 @@ use sdl2::video::Window;
 
 pub mod resources;
 
+const FPS_LOCK : u32 = 1000 / 64;
+
 /// Game Engine
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
 /// (keyboard and mouse) etc.
@@ -86,7 +88,10 @@ impl TEngine for Engine {
                 self.model.message = x;
                 Some(Msg::Exit)
             },
-            Msg::Tick(_) => None
+            Msg::Tick(x) => {
+                println!("{}", x);
+                None
+            }
         }
     }
 
@@ -96,6 +101,7 @@ impl TEngine for Engine {
     }
 
     fn process(&mut self) -> bool {
+        let ticks_at_start = self.timer.ticks();
 
         for event in self.event_pump.poll_iter() {
             use sdl2::event::Event::*;
@@ -112,6 +118,11 @@ impl TEngine for Engine {
         if let Some(msg) = self.messages.pop_front() {
             self.update(msg).map(|m| self.messages.push_back(m));
         }
+        let ticks_at_finish = self.timer.ticks();
+        if ticks_at_finish - ticks_at_start < FPS_LOCK {
+            self.timer.delay(FPS_LOCK - (ticks_at_finish - ticks_at_start));
+        }
+        self.messages.push_back(Msg::Tick(self.timer.ticks() - ticks_at_start));
         self.model.running
     }
 }
