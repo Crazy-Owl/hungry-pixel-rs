@@ -21,10 +21,10 @@ pub struct SDL2Context {
 impl SDL2Context {
     pub fn new() -> SDL2Context {
         let sdl_context: Sdl = sdl2::init().expect("Could not initialize SDL!");
-        let ttf: Sdl2TtfContext = sdl2::ttf::init().expect("Could not initialize TTF context!");
+        let ttf_context: Sdl2TtfContext = sdl2::ttf::init().expect("Could not initialize TTF context!");
         SDL2Context {
             sdl2: sdl_context,
-            ttf: ttf
+            ttf: ttf_context
         }
     }
 }
