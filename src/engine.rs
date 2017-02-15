@@ -5,7 +5,7 @@ use sdl2::video::Window;
 use sdl2::ttf::Font;
 
 use super::model::Model;
-use super::Msg;
+use super::msg::{Msg, ControlCommand};
 use super::SDL2Context;
 use super::state;
 use super::resources;
@@ -94,15 +94,13 @@ impl<'a> TEngine for Engine<'a> {
             Msg::Exit => {
                 self.model.running = false;
                 None
-            }
-            Msg::Change(x) => {
-                self.model.message = x;
-                Some(Msg::Exit)
-            }
+            },
             Msg::Tick(x) => {
                 println!("{}", x);
                 None
-            }
+            },
+            Msg::StartGame => None,
+            Msg::ButtonPressed(_) => None
         }
     }
 
@@ -120,7 +118,7 @@ impl<'a> TEngine for Engine<'a> {
 
             match event {
                 Quit { .. } |
-                KeyDown { keycode: Some(Escape), .. } => self.messages.push_back(Msg::Exit),
+                KeyDown { keycode: Some(Escape), .. } => self.messages.push_back(Msg::ButtonPressed(ControlCommand::Escape)),
                 _ => {}
             }
         }

@@ -5,15 +5,7 @@ mod state;
 pub mod model;
 pub mod engine;
 pub mod context;
+mod msg;
 
 pub use engine::{Engine, TEngine};
 pub use context::SDL2Context;
-
-/// Message type
-#[derive(Debug)]
-pub enum Msg {
-    NoOp,
-    Exit,
-    Change(String),
-    Tick(u32),
-}

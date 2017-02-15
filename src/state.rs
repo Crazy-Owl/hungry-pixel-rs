@@ -1,14 +1,14 @@
 use sdl2::render::Renderer;
 
+use super::msg::{Msg, ControlCommand};
+use super::model::Model;
+
 pub trait StateT {
     type Message;
     type Model;
 
-    fn process_message(&mut self, Self::Model, Self::Message) -> Self::Model;
-}
-
-pub trait RenderableT {
-    fn render(&mut self, Renderer);
+    fn process_message(&mut self, &mut Self::Model, Self::Message) -> Option<Self::Message>;
+    fn render(&mut self, &Renderer);
 }
 
 // pub struct MenuState {
@@ -16,6 +16,30 @@ pub trait RenderableT {
 //     items: Vec<String>,
 // }
 
-// impl RenderableT for MenuState {
-//     fn render(&mut self, r: Renderer) {}
-// }
+
+pub struct Edible(f32, f32, f32);
+
+pub struct GameState {
+    running: bool,
+    player: (f32, f32, f32),
+    player_direction: Vec<ControlCommand>,
+    items: Vec<Edible>,
+}
+
+impl StateT for GameState {
+    type Message = Msg;
+    type Model = Model;
+
+    fn process_message(&mut self,
+                       model: &mut Self::Model,
+                       msg: Self::Message)
+                       -> Option<Self::Message> {
+        match msg {
+            Msg::ButtonPressed(ControlCommand::Escape) => Some(Msg::Exit),
+            Msg::ButtonPressed(_) => None,
+            _ => None,
+        }
+    }
+
+    fn render(&mut self, r: &Renderer) {}
+}
