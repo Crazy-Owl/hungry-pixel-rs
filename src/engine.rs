@@ -2,7 +2,7 @@ use std::collections::linked_list::LinkedList;
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
-use sdl2::ttf::{Font};
+use sdl2::ttf::Font;
 
 use super::model::Model;
 use super::Msg;
@@ -10,7 +10,7 @@ use super::SDL2Context;
 use super::state;
 use super::resources;
 
-const FPS_LOCK : u32 = 1000 / 64;
+const FPS_LOCK: u32 = 1000 / 64;
 /// Game Engine
 
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
@@ -27,7 +27,7 @@ pub struct Engine<'a> {
     pub font: Font<'a>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
-    pub current_state: Option<Box<state::StateT<Model=Model,Message=Msg>>>
+    pub current_state: Option<Box<state::StateT<Model = Model, Message = Msg>>>,
 }
 
 /// Basic trait for all game engines.
@@ -53,7 +53,9 @@ impl<'a> Engine<'a> {
         let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
         let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
-        let font: Font = sdl_context.ttf.load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14).unwrap();
+        let font: Font = sdl_context.ttf
+            .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
+            .unwrap();
         let window: Window = video_subsystem.window("SDL2 game", 800, 600)
             .position_centered()
             .opengl()
@@ -77,7 +79,7 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
-            current_state: None
+            current_state: None,
         }
     }
 }
@@ -96,7 +98,7 @@ impl<'a> TEngine for Engine<'a> {
             Msg::Change(x) => {
                 self.model.message = x;
                 Some(Msg::Exit)
-            },
+            }
             Msg::Tick(x) => {
                 println!("{}", x);
                 None
