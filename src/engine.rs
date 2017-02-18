@@ -32,7 +32,7 @@ pub struct Engine<'m> {
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
     pub current_state: Option<Box<StateT<Model = Model, Message = Msg>>>,
-    marked_events: HashSet<Keycode>
+    marked_events: HashSet<Keycode>,
 }
 
 /// Basic trait for all game engines.
@@ -129,7 +129,7 @@ impl<'a> TEngine for Engine<'a> {
         for event in self.event_pump.poll_iter() {
             use sdl2::event::Event::*;
 
-            if let KeyDown {keycode: x, ..} = event {
+            if let KeyDown { keycode: x, .. } = event {
                 if self.marked_events.contains(&(x.unwrap())) {
                     continue;
                 } else {
@@ -172,9 +172,10 @@ impl<'a> TEngine for Engine<'a> {
         }
 
         self.render();
-        if let Some(msg) = self.messages.pop_front() {
+        while let Some(msg) = self.messages.pop_front() {
             self.update(msg).map(|m| self.messages.push_back(m));
         }
+
         let ticks_at_finish = self.timer.ticks();
         if ticks_at_finish - ticks_at_start < FPS_LOCK {
             self.timer.delay(FPS_LOCK - (ticks_at_finish - ticks_at_start));
