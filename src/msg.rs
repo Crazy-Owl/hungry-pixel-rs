@@ -5,7 +5,8 @@ pub enum Msg {
     Exit,
     Tick(u32),
     StartGame,
-    ButtonPressed(ControlCommand)
+    ButtonPressed(ControlCommand),
+    ButtonReleased(ControlCommand),
 }
 
 #[derive(Debug)]
@@ -14,5 +15,5 @@ pub enum ControlCommand {
     Down,
     Left,
     Right,
-    Escape
+    Escape,
 }

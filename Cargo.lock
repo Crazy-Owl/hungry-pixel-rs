@@ -3,7 +3,7 @@ name = "rogue"
 version = "0.1.0"
 dependencies = [
  "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.28.0 (git+https://github.com/AngryLawyer/rust-sdl2)",
+ "sdl2 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -63,21 +63,21 @@ dependencies = [
 
 [[package]]
 name = "sdl2"
-version = "0.28.0"
-source = "git+https://github.com/AngryLawyer/rust-sdl2#a780737d64588d641bd1b4e7e70872cd9a0ccced"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2-sys 0.27.2 (git+https://github.com/AngryLawyer/rust-sdl2)",
+ "sdl2-sys 0.27.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "sdl2-sys"
 version = "0.27.2"
-source = "git+https://github.com/AngryLawyer/rust-sdl2#a780737d64588d641bd1b4e7e70872cd9a0ccced"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -91,5 +91,5 @@ dependencies = [
 "checksum num-iter 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)" = "287a1c9969a847055e1122ec0ea7a5c5d6f72aad97934e131c83d5c08ab4e45c"
 "checksum num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "a16a42856a256b39c6d3484f097f6713e14feacd9bfb02290917904fae46c81c"
 "checksum rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "022e0636ec2519ddae48154b028864bdce4eaf7d35226ab8e65c611be97b189d"
-"checksum sdl2 0.28.0 (git+https://github.com/AngryLawyer/rust-sdl2)" = "<none>"
-"checksum sdl2-sys 0.27.2 (git+https://github.com/AngryLawyer/rust-sdl2)" = "<none>"
+"checksum sdl2 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f19efbd3c828d45e721636b377bd663f2075beaafcd9ec7f299563fede1482f7"
+"checksum sdl2-sys 0.27.2 (registry+https://github.com/rust-lang/crates.io-index)" = "37cfe343db4cd2159cab098096fff52e92d513c2a5b1ee06abbfd5db5323a64d"

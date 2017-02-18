@@ -1,13 +1,17 @@
 use std::collections::linked_list::LinkedList;
+use std::collections::hash_set::HashSet;
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
 use sdl2::ttf::Font;
+use sdl2::pixels::Color::RGB;
+use sdl2::keyboard::Keycode;
 
 use super::model::Model;
 use super::msg::{Msg, ControlCommand};
 use super::SDL2Context;
-use super::state;
+use super::state::StateT;
+use super::state::game::GameState;
 use super::resources;
 
 const FPS_LOCK: u32 = 1000 / 64;
@@ -15,19 +19,20 @@ const FPS_LOCK: u32 = 1000 / 64;
 
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
 /// (keyboard and mouse) etc.
-pub struct Engine<'a> {
+pub struct Engine<'m> {
     pub model: Model,
-    pub context: &'a SDL2Context,
+    pub context: &'m SDL2Context,
     /// LinkedList for in-game messages
     pub messages: LinkedList<Msg>,
     pub event_pump: EventPump,
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
-    pub font: Font<'a>, // TODO: provide a font cache (just like image cache)
+    pub font: Font<'m, 'static>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
-    pub current_state: Option<Box<state::StateT<Model = Model, Message = Msg>>>,
+    pub current_state: Option<Box<StateT<Model = Model, Message = Msg>>>,
+    marked_events: HashSet<Keycode>
 }
 
 /// Basic trait for all game engines.
@@ -70,6 +75,8 @@ impl<'a> Engine<'a> {
 
         let ticks = timer.ticks();
 
+        let game_state = GameState::new();
+
         Engine {
             model: Model::new(),
             context: sdl_context,
@@ -79,7 +86,8 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
-            current_state: None,
+            current_state: Some(Box::new(game_state)),
+            marked_events: HashSet::new(),
         }
     }
 }
@@ -89,36 +97,76 @@ impl<'a> TEngine for Engine<'a> {
     type Model = Model;
 
     fn update(&mut self, msg: Msg) -> Option<Msg> {
-        match msg {
-            Msg::NoOp => None,
-            Msg::Exit => {
+        let state_result: Option<Msg> = match self.current_state {
+            // TODO: actually process the result of `process_message` fn
+            Some(ref mut state) => state.as_mut().process_message(&mut self.model, msg),
+            None => None,
+        };
+        match state_result {
+            Some(Msg::NoOp) => None,
+            Some(Msg::Exit) => {
                 self.model.running = false;
                 None
-            },
-            Msg::Tick(x) => {
-                println!("{}", x);
-                None
-            },
-            Msg::StartGame => None,
-            Msg::ButtonPressed(_) => None
+            }
+            _ => None,
         }
     }
 
     fn render(&mut self) {
+        self.renderer.set_draw_color(RGB(0, 0, 0));
         self.renderer.clear();
+        if let Some(ref mut state) = self.current_state {
+            state.render(&mut self.renderer);
+        }
         self.renderer.present();
     }
 
     fn process(&mut self) -> bool {
         let ticks_at_start = self.timer.ticks();
 
+        self.marked_events.drain();
+
         for event in self.event_pump.poll_iter() {
             use sdl2::event::Event::*;
-            use sdl2::keyboard::Keycode::*;
+
+            if let KeyDown {keycode: x, ..} = event {
+                if self.marked_events.contains(&(x.unwrap())) {
+                    continue;
+                } else {
+                    self.marked_events.insert(x.unwrap());
+                }
+            }
 
             match event {
                 Quit { .. } |
-                KeyDown { keycode: Some(Escape), .. } => self.messages.push_back(Msg::ButtonPressed(ControlCommand::Escape)),
+                KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    println!("Escape pressed");
+                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Escape))
+                }
+                KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Up))
+                }
+                KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Down))
+                }
+                KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Left))
+                }
+                KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Right))
+                }
+                KeyUp { keycode: Some(Keycode::Up), .. } => {
+                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Up))
+                }
+                KeyUp { keycode: Some(Keycode::Down), .. } => {
+                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Down))
+                }
+                KeyUp { keycode: Some(Keycode::Left), .. } => {
+                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Left))
+                }
+                KeyUp { keycode: Some(Keycode::Right), .. } => {
+                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Right))
+                }
                 _ => {}
             }
         }
