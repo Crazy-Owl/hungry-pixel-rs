@@ -1,5 +1,5 @@
 /// Message type
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Msg {
     NoOp,
     Exit,
@@ -9,7 +9,7 @@ pub enum Msg {
     ButtonReleased(ControlCommand),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ControlCommand {
     Up,
     Down,

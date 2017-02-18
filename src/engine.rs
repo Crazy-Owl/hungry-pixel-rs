@@ -1,5 +1,4 @@
-use std::collections::linked_list::LinkedList;
-use std::collections::hash_set::HashSet;
+use std::collections::{HashMap, HashSet, LinkedList};
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
@@ -15,6 +14,19 @@ use super::state::game::GameState;
 use super::resources;
 
 const FPS_LOCK: u32 = 1000 / 64;
+
+lazy_static! {
+    pub static ref EVENTS_MAPPING: HashMap<Keycode, ControlCommand> = {
+        let mut hm = HashMap::new();
+        // TODO: do something with these invocations, probably a macro use?
+        hm.insert(Keycode::Up, ControlCommand::Up);
+        hm.insert(Keycode::Down, ControlCommand::Down);
+        hm.insert(Keycode::Left, ControlCommand::Left);
+        hm.insert(Keycode::Right, ControlCommand::Right);
+        hm.insert(Keycode::Escape, ControlCommand::Escape);
+        hm
+    };
+}
 /// Game Engine
 
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
@@ -138,34 +150,16 @@ impl<'a> TEngine for Engine<'a> {
             }
 
             match event {
-                Quit { .. } |
-                KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    println!("Escape pressed");
-                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Escape))
+                Quit { .. } => self.messages.push_back(Msg::ButtonPressed(ControlCommand::Escape)),
+                KeyDown { keycode: Some(x), .. } => {
+                    if let Some(command) = EVENTS_MAPPING.get(&x) {
+                        self.messages.push_back(Msg::ButtonPressed(*command))
+                    }
                 }
-                KeyDown { keycode: Some(Keycode::Up), .. } => {
-                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Up))
-                }
-                KeyDown { keycode: Some(Keycode::Down), .. } => {
-                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Down))
-                }
-                KeyDown { keycode: Some(Keycode::Left), .. } => {
-                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Left))
-                }
-                KeyDown { keycode: Some(Keycode::Right), .. } => {
-                    self.messages.push_back(Msg::ButtonPressed(ControlCommand::Right))
-                }
-                KeyUp { keycode: Some(Keycode::Up), .. } => {
-                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Up))
-                }
-                KeyUp { keycode: Some(Keycode::Down), .. } => {
-                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Down))
-                }
-                KeyUp { keycode: Some(Keycode::Left), .. } => {
-                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Left))
-                }
-                KeyUp { keycode: Some(Keycode::Right), .. } => {
-                    self.messages.push_back(Msg::ButtonReleased(ControlCommand::Right))
+                KeyUp { keycode: Some(x), .. } => {
+                    if let Some(command) = EVENTS_MAPPING.get(&x) {
+                        self.messages.push_back(Msg::ButtonReleased(*command))
+                    }
                 }
                 _ => {}
             }

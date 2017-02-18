@@ -5,6 +5,7 @@ authors = ["Crazy-Owl <stalker401@gmail.com>"]
 
 [dependencies]
 rand = "*"
+lazy_static = "*"
 
 [dependencies.sdl2]
 version = "0.29"
