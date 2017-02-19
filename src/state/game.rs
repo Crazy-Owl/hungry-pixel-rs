@@ -3,6 +3,7 @@ use sdl2::rect::Rect;
 use sdl2::pixels::Color::*;
 
 use super::StateT;
+use rand;
 
 use msg::{Msg, ControlCommand};
 use model::Model;
@@ -14,6 +15,7 @@ pub struct GameSettings {
     deterioration_rate: f32,
     acceleration_rate: f32,
     edibles_spawn_rate: f32,
+    edible_bounds: (u32, u32),
 }
 
 impl GameSettings {
@@ -23,6 +25,7 @@ impl GameSettings {
             deterioration_rate: 0.5,
             acceleration_rate: 50.0,
             edibles_spawn_rate: 5.0,
+            edible_bounds: (10, 45),
         }
     }
 }
@@ -33,7 +36,7 @@ pub struct GameState {
     player_speed: (f32, f32),
     player_direction: (i8, i8),
     edible_eta: f32,
-    items: Vec<Edible>,
+    edibles: Vec<Edible>,
     settings: GameSettings,
 }
 
@@ -46,12 +49,21 @@ impl GameState {
             player_speed: (0.0, 0.0),
             player_direction: (0, 0),
             edible_eta: settings.edibles_spawn_rate,
-            items: Vec::new(),
+            edibles: Vec::new(),
             settings: settings,
         }
     }
 
-    pub fn spawn_edible(&mut self) {}
+    pub fn spawn_edible(&mut self, max_x: u32, max_y: u32) {
+        let coords = rand::random::<(u32, u32, u32)>();
+        self.edibles.push(Edible((coords.0 % max_x) as f32,
+                                 (coords.1 % max_y) as f32,
+                                 (self.settings.edible_bounds.0 +
+                                  (coords.2 %
+                                   (self.settings.edible_bounds.1 -
+                                    self.settings.edible_bounds.0))) as
+                                 f32));
+    }
 }
 
 impl StateT for GameState {
@@ -74,6 +86,12 @@ impl StateT for GameState {
                     self.player_speed.1 +=
                         (self.player_direction.1 as f32) * self.settings.acceleration_rate *
                         (x as f32) / 1000.0;
+
+                    self.edible_eta -= (x as f32) / 1000.0;
+                    if self.edible_eta <= 0.0 {
+                        self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
+                        self.edible_eta = self.settings.edibles_spawn_rate;
+                    }
                     println!("{:?}", self.player);
                 }
                 Some(Msg::Tick(x))
@@ -124,6 +142,14 @@ impl StateT for GameState {
                                  self.player.1 as i32,
                                  self.player.2 as u32,
                                  self.player.2 as u32))
-            .unwrap()
+            .unwrap();
+        r.set_draw_color(RGB(255, 128, 0));
+        for edible in &self.edibles {
+            r.draw_rect(Rect::new(edible.0 as i32,
+                                  edible.1 as i32,
+                                  edible.2 as u32,
+                                  edible.2 as u32))
+                .unwrap();
+        }
     }
 }

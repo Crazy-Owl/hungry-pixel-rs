@@ -67,13 +67,14 @@ pub trait TEngine {
 
 impl<'a> Engine<'a> {
     pub fn new(sdl_context: &'a mut SDL2Context) -> Engine<'a> {
+        let model = Model::new();
         let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
         let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
         let font: Font = sdl_context.ttf
             .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
             .unwrap();
-        let window: Window = video_subsystem.window("SDL2 game", 800, 600)
+        let window: Window = video_subsystem.window("SDL2 game", model.window_size.0, model.window_size.1)
             .position_centered()
             .opengl()
             .allow_highdpi()
@@ -90,7 +91,7 @@ impl<'a> Engine<'a> {
         let game_state = GameState::new();
 
         Engine {
-            model: Model::new(),
+            model: model,
             context: sdl_context,
             messages: LinkedList::new(),
             event_pump: event_pump,
@@ -140,6 +141,7 @@ impl<'a> TEngine for Engine<'a> {
 
         for event in self.event_pump.poll_iter() {
             use sdl2::event::Event::*;
+            use sdl2::event::WindowEvent;
 
             if let KeyDown { keycode: x, .. } = event {
                 if self.marked_events.contains(&(x.unwrap())) {
@@ -160,6 +162,9 @@ impl<'a> TEngine for Engine<'a> {
                     if let Some(command) = EVENTS_MAPPING.get(&x) {
                         self.messages.push_back(Msg::ButtonReleased(*command))
                     }
+                }
+                Window { win_event: WindowEvent::Resized(x, y), .. } => {
+                    println!("Window resized, {} {}", x, y);
                 }
                 _ => {}
             }
