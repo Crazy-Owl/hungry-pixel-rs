@@ -2,7 +2,7 @@ use sdl2::render::Renderer;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color::*;
 
-use super::StateT;
+use engine::state::StateT;
 use rand;
 
 use msg::{Msg, ControlCommand};
@@ -87,12 +87,33 @@ impl StateT for GameState {
                         (self.player_direction.1 as f32) * self.settings.acceleration_rate *
                         (x as f32) / 1000.0;
 
+                    if self.player.0 < 0.0 {
+                        self.player.0 = 0.0;
+                        self.player_speed.0 = 0.0;
+                    }
+
+                    if self.player.0 > (model.window_size.0 as f32) - self.player.2 {
+                        self.player.0 = (model.window_size.0 as f32) - self.player.2;
+                        self.player_speed.0 = 0.0;
+                    }
+
+                    if self.player.1 < 0.0 {
+                        self.player.1 = 0.0;
+                        self.player_speed.1 = 0.0;
+                    }
+
+                    if self.player.1 > (model.window_size.1 as f32) - self.player.2 {
+                        self.player.1 = (model.window_size.1 as f32) - self.player.2;
+                        self.player_speed.1 = 0.0;
+                    }
+
                     self.edible_eta -= (x as f32) / 1000.0;
                     if self.edible_eta <= 0.0 {
                         self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
                     println!("{:?}", self.player);
+                    // TODO: check for collisions here
                 }
                 Some(Msg::Tick(x))
             }

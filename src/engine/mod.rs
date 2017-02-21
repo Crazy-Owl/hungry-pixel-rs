@@ -9,9 +9,11 @@ use sdl2::keyboard::Keycode;
 use super::model::Model;
 use super::msg::{Msg, ControlCommand};
 use super::SDL2Context;
-use super::state::StateT;
-use super::state::game::GameState;
+use engine::state::StateT;
+use game::state::pixel::GameState;
 use super::resources;
+
+pub mod state;
 
 const FPS_LOCK: u32 = 1000 / 64;
 

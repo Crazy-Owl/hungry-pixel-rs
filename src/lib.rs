@@ -4,7 +4,7 @@ extern crate sdl2;
 extern crate rand;
 
 pub mod resources;
-mod state;
+pub mod game;
 pub mod model;
 pub mod engine;
 pub mod context;
