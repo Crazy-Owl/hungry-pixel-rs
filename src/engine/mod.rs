@@ -14,6 +14,7 @@ use game::state::pixel::GameState;
 use super::resources;
 
 pub mod state;
+pub mod geometry;
 
 const FPS_LOCK: u32 = 1000 / 64;
 
