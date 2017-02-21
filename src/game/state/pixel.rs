@@ -132,6 +132,10 @@ impl StateT for GameState {
                     self.player.offset(self.player_speed.0 * (x as f32) / 1000.0,
                                        self.player_speed.1 * (x as f32) / 1000.0);
                     self.player.resize(-self.settings.deterioration_rate * (x as f32) / 1000.0);
+                    if self.player.size <= 1.0 {
+                        println!("Sorry, you've lost!");
+                        return Some(Msg::Exit);
+                    }
                     self.player_speed.0 +=
                         (self.player_direction.0 as f32) * self.settings.acceleration_rate *
                         (x as f32) / 1000.0;
