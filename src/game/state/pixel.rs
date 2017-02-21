@@ -8,8 +8,6 @@ use rand;
 use msg::{Msg, ControlCommand};
 use model::Model;
 
-pub struct Edible(f32, f32, f32);
-
 pub struct GameSettings {
     max_velocity: f32,
     deterioration_rate: f32,
@@ -30,9 +28,53 @@ impl GameSettings {
     }
 }
 
+#[derive(Debug)]
+pub struct Player {
+    x: f32,
+    y: f32,
+    rect: Rect,
+    size: f32,
+}
+
+impl Player {
+    pub fn new() -> Player {
+        Player {
+            x: 0.0,
+            y: 0.0,
+            rect: Rect::new(0, 0, 20, 20),
+            size: 20.0,
+        }
+    }
+
+    pub fn offset(&mut self, x: f32, y: f32) {
+        self.x += x;
+        self.y += y;
+        self.rect.reposition((self.x as i32, self.y as i32));
+    }
+
+    pub fn resize(&mut self, d_size: f32) {
+        self.size += d_size;
+        self.rect.resize(self.size as u32, self.size as u32);
+    }
+}
+
+pub struct Edible {
+    rect: Rect,
+    nutrition: f32,
+}
+
+impl Edible {
+    pub fn new(x: i32, y: i32, nutrition: f32) -> Edible {
+        Edible {
+            rect: Rect::new(x, y, nutrition as u32, nutrition as u32),
+            nutrition: nutrition,
+        }
+    }
+}
+
 pub struct GameState {
     running: bool,
-    player: (f32, f32, f32),
+    player: Player,
     player_speed: (f32, f32),
     player_direction: (i8, i8),
     edible_eta: f32,
@@ -45,7 +87,7 @@ impl GameState {
         let settings = GameSettings::new();
         GameState {
             running: true,
-            player: (0.0, 0.0, 20.0),
+            player: Player::new(),
             player_speed: (0.0, 0.0),
             player_direction: (0, 0),
             edible_eta: settings.edibles_spawn_rate,
@@ -56,13 +98,13 @@ impl GameState {
 
     pub fn spawn_edible(&mut self, max_x: u32, max_y: u32) {
         let coords = rand::random::<(u32, u32, u32)>();
-        self.edibles.push(Edible((coords.0 % max_x) as f32,
-                                 (coords.1 % max_y) as f32,
-                                 (self.settings.edible_bounds.0 +
-                                  (coords.2 %
-                                   (self.settings.edible_bounds.1 -
-                                    self.settings.edible_bounds.0))) as
-                                 f32));
+        self.edibles.push(Edible::new((coords.0 % max_x) as i32,
+                                      (coords.1 % max_y) as i32,
+                                      (self.settings.edible_bounds.0 +
+                                       (coords.2 %
+                                        (self.settings.edible_bounds.1 -
+                                         self.settings.edible_bounds.0))) as
+                                      f32));
     }
 }
 
@@ -77,9 +119,9 @@ impl StateT for GameState {
         match msg {
             Msg::Tick(x) => {
                 if self.running {
-                    self.player.0 += self.player_speed.0 * (x as f32) / 1000.0;
-                    self.player.1 += self.player_speed.1 * (x as f32) / 1000.0;
-                    self.player.2 -= self.settings.deterioration_rate * (x as f32) / 1000.0;
+                    self.player.offset(self.player_speed.0 * (x as f32) / 1000.0,
+                                       self.player_speed.1 * (x as f32) / 1000.0);
+                    self.player.resize(-self.settings.deterioration_rate * (x as f32) / 1000.0);
                     self.player_speed.0 +=
                         (self.player_direction.0 as f32) * self.settings.acceleration_rate *
                         (x as f32) / 1000.0;
@@ -87,23 +129,29 @@ impl StateT for GameState {
                         (self.player_direction.1 as f32) * self.settings.acceleration_rate *
                         (x as f32) / 1000.0;
 
-                    if self.player.0 < 0.0 {
-                        self.player.0 = 0.0;
+                    if self.player.rect.x() < 0 {
+                        self.player.rect.set_x(0);
                         self.player_speed.0 = 0.0;
                     }
 
-                    if self.player.0 > (model.window_size.0 as f32) - self.player.2 {
-                        self.player.0 = (model.window_size.0 as f32) - self.player.2;
+                    if self.player.rect.x() >
+                       (model.window_size.0 as i32) - self.player.size as i32 {
+                        self.player
+                            .rect
+                            .set_x((model.window_size.0 as i32) - self.player.size as i32);
                         self.player_speed.0 = 0.0;
                     }
 
-                    if self.player.1 < 0.0 {
-                        self.player.1 = 0.0;
+                    if self.player.rect.y() < 0 {
+                        self.player.rect.set_y(0);
                         self.player_speed.1 = 0.0;
                     }
 
-                    if self.player.1 > (model.window_size.1 as f32) - self.player.2 {
-                        self.player.1 = (model.window_size.1 as f32) - self.player.2;
+                    if self.player.rect.y() >
+                       (model.window_size.1 as i32) - self.player.size as i32 {
+                        self.player
+                            .rect
+                            .set_y((model.window_size.1 as i32) - self.player.size as i32);
                         self.player_speed.1 = 0.0;
                     }
 
@@ -112,7 +160,8 @@ impl StateT for GameState {
                         self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
-                    println!("{:?}", self.player);
+                    println!("{:?}", self.player_speed);
+                    println!("{:?}", self.player_direction);
                     // TODO: check for collisions here
                 }
                 Some(Msg::Tick(x))
@@ -159,17 +208,11 @@ impl StateT for GameState {
         // get player left upper corner coordinates
         // TODO: proper handling, just player x, y for now
         // this will cause strange behavior, and should be eliminated
-        r.draw_rect(Rect::new(self.player.0 as i32,
-                                 self.player.1 as i32,
-                                 self.player.2 as u32,
-                                 self.player.2 as u32))
+        r.draw_rect(self.player.rect)
             .unwrap();
         r.set_draw_color(RGB(255, 128, 0));
         for edible in &self.edibles {
-            r.draw_rect(Rect::new(edible.0 as i32,
-                                  edible.1 as i32,
-                                  edible.2 as u32,
-                                  edible.2 as u32))
+            r.draw_rect(edible.rect)
                 .unwrap();
         }
     }
