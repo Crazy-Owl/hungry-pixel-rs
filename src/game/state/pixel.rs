@@ -160,9 +160,20 @@ impl StateT for GameState {
                         self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
-                    println!("{:?}", self.player_speed);
-                    println!("{:?}", self.player_direction);
                     // TODO: check for collisions here
+                    let mut collisions = Vec::<usize>::new();
+                    for edible_idx in 0..self.edibles.len() {
+                        let edible = &self.edibles[edible_idx];
+                        if let Some(_) = self.player.rect.intersection(edible.rect) {
+                            self.player.size += edible.nutrition;
+                            collisions.push(edible_idx);
+                        }
+                    }
+                    collisions.sort();
+                    collisions.reverse();
+                    for collided in collisions {
+                        self.edibles.swap_remove(collided);
+                    }
                 }
                 Some(Msg::Tick(x))
             }
