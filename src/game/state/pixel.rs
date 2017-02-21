@@ -46,6 +46,16 @@ impl Player {
         }
     }
 
+    pub fn set_x(&mut self, x: f32) {
+        self.x = x;
+        self.rect.set_x(x as i32);
+    }
+
+    pub fn set_y(&mut self, y: f32) {
+        self.y = y;
+        self.rect.set_y(y as i32);
+    }
+
     pub fn offset(&mut self, x: f32, y: f32) {
         self.x += x;
         self.y += y;
@@ -129,30 +139,28 @@ impl StateT for GameState {
                         (self.player_direction.1 as f32) * self.settings.acceleration_rate *
                         (x as f32) / 1000.0;
 
-                    if self.player.rect.x() < 0 {
-                        self.player.rect.set_x(0);
-                        self.player_speed.0 = 0.0;
+                    if self.player.x < 0.0 {
+                        self.player.set_x(0.0);
+                        self.player_speed.0 = -self.player_speed.0;
                     }
 
-                    if self.player.rect.x() >
-                       (model.window_size.0 as i32) - self.player.size as i32 {
+                    if self.player.x > (model.window_size.0 as f32) - self.player.size {
+                        let new_x = model.window_size.0 as f32 - self.player.size;
                         self.player
-                            .rect
-                            .set_x((model.window_size.0 as i32) - self.player.size as i32);
-                        self.player_speed.0 = 0.0;
+                            .set_x(new_x);
+                        self.player_speed.0 = -self.player_speed.0;
                     }
 
-                    if self.player.rect.y() < 0 {
-                        self.player.rect.set_y(0);
-                        self.player_speed.1 = 0.0;
+                    if self.player.y < 0.0 {
+                        self.player.set_y(0.0);
+                        self.player_speed.1 = -self.player_speed.1;
                     }
 
-                    if self.player.rect.y() >
-                       (model.window_size.1 as i32) - self.player.size as i32 {
+                    if self.player.y > (model.window_size.1 as f32) - self.player.size {
+                        let new_y = model.window_size.1 as f32 - self.player.size;
                         self.player
-                            .rect
-                            .set_y((model.window_size.1 as i32) - self.player.size as i32);
-                        self.player_speed.1 = 0.0;
+                            .set_y(new_y);
+                        self.player_speed.1 = -self.player_speed.1;
                     }
 
                     self.edible_eta -= (x as f32) / 1000.0;
@@ -160,7 +168,6 @@ impl StateT for GameState {
                         self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
-                    // TODO: check for collisions here
                     let mut collisions = Vec::<usize>::new();
                     for edible_idx in 0..self.edibles.len() {
                         let edible = &self.edibles[edible_idx];
