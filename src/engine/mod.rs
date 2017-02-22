@@ -45,7 +45,7 @@ pub struct Engine<'m> {
     pub font: Font<'m, 'static>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
-    pub current_state: Option<Box<StateT<Model = Model, Message = Msg>>>,
+    pub current_state: Box<StateT<Model = Model, Message = Msg>>,
     marked_events: HashSet<Keycode>,
 }
 
@@ -101,7 +101,7 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
-            current_state: Some(Box::new(game_state)),
+            current_state: Box::new(game_state),
             marked_events: HashSet::new(),
         }
     }
@@ -112,12 +112,7 @@ impl<'a> TEngine for Engine<'a> {
     type Model = Model;
 
     fn update(&mut self, msg: Msg) -> Option<Msg> {
-        let state_result: Option<Msg> = match self.current_state {
-            // TODO: actually process the result of `process_message` fn
-            Some(ref mut state) => state.as_mut().process_message(&mut self.model, msg),
-            None => None,
-        };
-        match state_result {
+        match self.current_state.process_message(&mut self.model, msg) {
             Some(Msg::NoOp) => None,
             Some(Msg::Exit) => {
                 self.model.running = false;
@@ -130,9 +125,7 @@ impl<'a> TEngine for Engine<'a> {
     fn render(&mut self) {
         self.renderer.set_draw_color(RGB(0, 0, 0));
         self.renderer.clear();
-        if let Some(ref mut state) = self.current_state {
-            state.render(&mut self.renderer);
-        }
+        self.current_state.render(&mut self.renderer);
         self.renderer.present();
     }
 
