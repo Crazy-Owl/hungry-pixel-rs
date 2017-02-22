@@ -34,6 +34,8 @@ impl GameSettings {
 pub struct Player {
     x: f32,
     y: f32,
+    speed: (f32, f32),
+    direction: (i8, i8),
     rect: Rect,
     size: f32,
 }
@@ -43,6 +45,8 @@ impl Player {
         Player {
             x: 0.0,
             y: 0.0,
+            speed: (0.0, 0.0),
+            direction: (0, 0),
             rect: Rect::new(0, 0, 20, 20),
             size: 20.0,
         }
@@ -68,6 +72,45 @@ impl Player {
         self.size += d_size;
         self.rect.resize(self.size as u32, self.size as u32);
     }
+
+    // Boolean result of this fn tells whether the player has not yet lost the game (`true` means "continue")
+    pub fn process(&mut self, x: f32, model: &mut Model, settings: &GameSettings) -> bool {
+        let offset_args = (self.speed.0 * x / 1000.0,
+                           self.speed.1 * x / 1000.0);
+        self.offset(offset_args.0, offset_args.1);
+        self.resize(-settings.deterioration_rate * x / 1000.0);
+        if self.size <= 1.0 {
+            println!("Sorry, you've lost!");
+            return false;
+        }
+        self.speed.0 += (self.direction.0 as f32) * settings.acceleration_rate *
+                               x / 1000.0;
+        self.speed.1 += (self.direction.1 as f32) * settings.acceleration_rate *
+                               x / 1000.0;
+
+        if self.x < 0.0 {
+            self.set_x(0.0);
+            self.speed.0 = -self.speed.0;
+        }
+
+        if self.x > (model.window_size.0 as f32) - self.size {
+            let new_x = model.window_size.0 as f32 - self.size;
+            self.set_x(new_x);
+            self.speed.0 = -self.speed.0;
+        }
+
+        if self.y < 0.0 {
+            self.set_y(0.0);
+            self.speed.1 = -self.speed.1;
+        }
+
+        if self.y > (model.window_size.1 as f32) - self.size {
+            let new_y = model.window_size.1 as f32 - self.size;
+            self.set_y(new_y);
+            self.speed.1 = -self.speed.1;
+        }
+        true
+    }
 }
 
 pub struct Edible {
@@ -92,8 +135,6 @@ impl Edible {
 pub struct GameState {
     running: bool,
     player: Player,
-    player_speed: (f32, f32),
-    player_direction: (i8, i8),
     edible_eta: f32,
     edibles: Vec<Edible>,
     settings: GameSettings,
@@ -105,8 +146,6 @@ impl GameState {
         GameState {
             running: true,
             player: Player::new(),
-            player_speed: (0.0, 0.0),
-            player_direction: (0, 0),
             edible_eta: settings.edibles_spawn_rate,
             edibles: Vec::new(),
             settings: settings,
@@ -136,44 +175,10 @@ impl StateT for GameState {
         match msg {
             Msg::Tick(x) => {
                 if self.running {
-                    self.player.offset(self.player_speed.0 * (x as f32) / 1000.0,
-                                       self.player_speed.1 * (x as f32) / 1000.0);
-                    self.player.resize(-self.settings.deterioration_rate * (x as f32) / 1000.0);
-                    if self.player.size <= 1.0 {
-                        println!("Sorry, you've lost!");
+
+                    if !self.player.process(x as f32, model, &self.settings) {
                         return Some(Msg::Exit);
                     }
-                    self.player_speed.0 +=
-                        (self.player_direction.0 as f32) * self.settings.acceleration_rate *
-                        (x as f32) / 1000.0;
-                    self.player_speed.1 +=
-                        (self.player_direction.1 as f32) * self.settings.acceleration_rate *
-                        (x as f32) / 1000.0;
-
-                    if self.player.x < 0.0 {
-                        self.player.set_x(0.0);
-                        self.player_speed.0 = -self.player_speed.0;
-                    }
-
-                    if self.player.x > (model.window_size.0 as f32) - self.player.size {
-                        let new_x = model.window_size.0 as f32 - self.player.size;
-                        self.player
-                            .set_x(new_x);
-                        self.player_speed.0 = -self.player_speed.0;
-                    }
-
-                    if self.player.y < 0.0 {
-                        self.player.set_y(0.0);
-                        self.player_speed.1 = -self.player_speed.1;
-                    }
-
-                    if self.player.y > (model.window_size.1 as f32) - self.player.size {
-                        let new_y = model.window_size.1 as f32 - self.player.size;
-                        self.player
-                            .set_y(new_y);
-                        self.player_speed.1 = -self.player_speed.1;
-                    }
-
                     self.edible_eta -= (x as f32) / 1000.0;
                     if self.edible_eta <= 0.0 {
                         self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
@@ -182,7 +187,8 @@ impl StateT for GameState {
                     let mut collisions = Vec::<usize>::new();
                     for edible_idx in 0..self.edibles.len() {
                         let edible = &mut self.edibles[edible_idx];
-                        edible.deteriorate(self.settings.edible_deterioration_rate * (x as f32) / 1000.0);
+                        edible.deteriorate(self.settings.edible_deterioration_rate * (x as f32) /
+                                           1000.0);
                         if let Some(_) = self.player.rect.intersection(edible.rect) {
                             self.player.size += edible.nutrition;
                             collisions.push(edible_idx);
@@ -198,35 +204,35 @@ impl StateT for GameState {
             }
             Msg::ButtonPressed(ControlCommand::Escape) => Some(Msg::Exit),
             Msg::ButtonPressed(ControlCommand::Up) => {
-                self.player_direction.1 = -1i8;
+                self.player.direction.1 = -1i8;
                 None
             }
             Msg::ButtonPressed(ControlCommand::Down) => {
-                self.player_direction.1 = 1i8;
+                self.player.direction.1 = 1i8;
                 None
             }
             Msg::ButtonPressed(ControlCommand::Left) => {
-                self.player_direction.0 = -1i8;
+                self.player.direction.0 = -1i8;
                 None
             }
             Msg::ButtonPressed(ControlCommand::Right) => {
-                self.player_direction.0 = 1i8;
+                self.player.direction.0 = 1i8;
                 None
             }
             Msg::ButtonReleased(ControlCommand::Up) => {
-                self.player_direction.1 = 0;
+                self.player.direction.1 = 0;
                 None
             }
             Msg::ButtonReleased(ControlCommand::Down) => {
-                self.player_direction.1 = 0;
+                self.player.direction.1 = 0;
                 None
             }
             Msg::ButtonReleased(ControlCommand::Left) => {
-                self.player_direction.0 = 0;
+                self.player.direction.0 = 0;
                 None
             }
             Msg::ButtonReleased(ControlCommand::Right) => {
-                self.player_direction.0 = 0;
+                self.player.direction.0 = 0;
                 None
             }
             _ => None,
