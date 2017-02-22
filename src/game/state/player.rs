@@ -46,7 +46,8 @@ impl Player {
         self.rect.resize(self.size as u32, self.size as u32);
     }
 
-    // Boolean result of this fn tells whether the player has not yet lost the game (`true` means "continue")
+    // Boolean result of this fn tells whether the player has not yet lost the game
+    // (`true` means "continue")
     pub fn process(&mut self, x: f32, model: &mut Model, settings: &GameSettings) -> bool {
         let offset_args = (self.speed.0 * x / 1000.0,
                            self.speed.1 * x / 1000.0);
