@@ -1,5 +1,4 @@
 use sdl2::render::Renderer;
-use sdl2::rect::Rect;
 use sdl2::pixels::Color::*;
 
 use engine::state::StateT;
@@ -8,6 +7,7 @@ use rand;
 use msg::{Msg, ControlCommand};
 use model::Model;
 use super::player::Player;
+use super::edible::Edible;
 
 pub struct GameSettings {
     pub max_velocity: f32,
@@ -28,26 +28,6 @@ impl GameSettings {
             edibles_spawn_rate: 5.0,
             edible_bounds: (10, 45),
         }
-    }
-}
-
-
-pub struct Edible {
-    rect: Rect,
-    nutrition: f32,
-}
-
-impl Edible {
-    pub fn new(x: i32, y: i32, nutrition: f32) -> Edible {
-        Edible {
-            rect: Rect::new(x, y, nutrition as u32, nutrition as u32),
-            nutrition: nutrition,
-        }
-    }
-
-    pub fn deteriorate(&mut self, x: f32) {
-        self.nutrition -= x;
-        self.rect.resize(self.nutrition as u32, self.nutrition as u32);
     }
 }
 
