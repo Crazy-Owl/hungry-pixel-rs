@@ -11,6 +11,7 @@ use model::Model;
 pub struct GameSettings {
     max_velocity: f32,
     deterioration_rate: f32,
+    edible_deterioration_rate: f32,
     acceleration_rate: f32,
     edibles_spawn_rate: f32,
     edible_bounds: (u32, u32),
@@ -21,6 +22,7 @@ impl GameSettings {
         GameSettings {
             max_velocity: 30.0,
             deterioration_rate: 0.5,
+            edible_deterioration_rate: 0.25,
             acceleration_rate: 50.0,
             edibles_spawn_rate: 5.0,
             edible_bounds: (10, 45),
@@ -79,6 +81,11 @@ impl Edible {
             rect: Rect::new(x, y, nutrition as u32, nutrition as u32),
             nutrition: nutrition,
         }
+    }
+
+    pub fn deteriorate(&mut self, x: f32) {
+        self.nutrition -= x;
+        self.rect.resize(self.nutrition as u32, self.nutrition as u32);
     }
 }
 
@@ -174,7 +181,8 @@ impl StateT for GameState {
                     }
                     let mut collisions = Vec::<usize>::new();
                     for edible_idx in 0..self.edibles.len() {
-                        let edible = &self.edibles[edible_idx];
+                        let edible = &mut self.edibles[edible_idx];
+                        edible.deteriorate(self.settings.edible_deterioration_rate * (x as f32) / 1000.0);
                         if let Some(_) = self.player.rect.intersection(edible.rect) {
                             self.player.size += edible.nutrition;
                             collisions.push(edible_idx);
