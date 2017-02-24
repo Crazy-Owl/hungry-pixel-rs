@@ -11,6 +11,7 @@ use super::msg::{Msg, ControlCommand};
 use super::SDL2Context;
 use engine::state::StateT;
 use game::state::pixel::GameState;
+use game::state::menu::MenuState;
 use super::resources;
 
 pub mod state;
@@ -83,14 +84,17 @@ impl<'a> Engine<'a> {
             .build()
             .expect("Could not create window!");
 
-        let renderer: Renderer<'static> = window.renderer()
+        let mut renderer: Renderer<'static> = window.renderer()
             .accelerated()
             .build()
             .expect("Could not aquire renderer");
 
         let ticks = timer.ticks();
 
-        let game_state = GameState::new();
+        let menu = MenuState::new(&font, &mut renderer, vec![
+            ("New Game".to_string(), Msg::StartGame),
+            ("Exit Game".to_string(), Msg::Exit)
+        ]);
 
         Engine {
             model: model,
@@ -101,7 +105,7 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
-            current_state: Box::new(game_state),
+            current_state: Box::new(menu),
             marked_events: HashSet::new(),
         }
     }
@@ -113,6 +117,11 @@ impl<'a> TEngine for Engine<'a> {
 
     fn update(&mut self, msg: Msg) -> Option<Msg> {
         match self.current_state.process_message(&mut self.model, msg) {
+            Some(Msg::StartGame) => {
+                let game_state = GameState::new();
+                self.current_state = Box::new(game_state);
+                None
+            }
             Some(Msg::NoOp) => None,
             Some(Msg::Exit) => {
                 self.model.running = false;
