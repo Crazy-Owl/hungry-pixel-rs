@@ -27,6 +27,7 @@ lazy_static! {
         hm.insert(Keycode::Left, ControlCommand::Left);
         hm.insert(Keycode::Right, ControlCommand::Right);
         hm.insert(Keycode::Escape, ControlCommand::Escape);
+        hm.insert(Keycode::Return, ControlCommand::Enter);
         hm
     };
 }
@@ -120,6 +121,14 @@ impl<'a> TEngine for Engine<'a> {
             Some(Msg::StartGame) => {
                 let game_state = GameState::new();
                 self.current_state = Box::new(game_state);
+                None
+            }
+            Some(Msg::ToMenu) => {
+                let menu = MenuState::new(&self.font, &mut self.renderer, vec![
+                    ("New Game".to_string(), Msg::StartGame),
+                    ("Exit Game".to_string(), Msg::Exit)
+                ]);
+                self.current_state = Box::new(menu);
                 None
             }
             Some(Msg::NoOp) => None,

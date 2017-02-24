@@ -101,7 +101,7 @@ impl StateT for GameState {
                 }
                 Some(Msg::Tick(x))
             }
-            Msg::ButtonPressed(ControlCommand::Escape) => Some(Msg::Exit),
+            Msg::ButtonPressed(ControlCommand::Escape) => Some(Msg::ToMenu),
             Msg::ButtonPressed(ControlCommand::Up) => {
                 self.player.direction.1 = -1i8;
                 None

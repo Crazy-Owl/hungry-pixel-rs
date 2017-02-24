@@ -63,7 +63,8 @@ impl StateT for MenuState {
             Msg::ButtonPressed(ControlCommand::Enter) => {
                 Some(self.menu_items[self.currently_selected as usize].msg)
             }
-            _ => None
+            Msg::ButtonPressed(ControlCommand::Escape) => Some(Msg::Exit),
+            _ => None,
         }
     }
 
@@ -73,12 +74,11 @@ impl StateT for MenuState {
         for item in &self.menu_items {
             r.copy(&item.texture,
                       None,
-                      Some(Rect::new(current_y as i32,
-                                     self.top_left.0 as i32,
+                      Some(Rect::new(self.top_left.0 as i32,
+                                     current_y as i32,
                                      item.dimensions.0,
                                      item.dimensions.1)))
                 .unwrap();
-            current_y += item.dimensions.1 + 2;
             if running_counter == self.currently_selected as usize {
                 r.set_draw_color(RGB(255, 255, 255));
                 r.draw_rect(Rect::new(self.top_left.0 - 20,
@@ -87,6 +87,7 @@ impl StateT for MenuState {
                                          item.dimensions.1))
                     .unwrap();
             }
+            current_y += item.dimensions.1 + 2;
             running_counter += 1;
         }
     }
