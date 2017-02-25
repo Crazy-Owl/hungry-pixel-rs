@@ -5,7 +5,7 @@ use engine::state::StateT;
 use rand;
 
 use msg::{Msg, ControlCommand};
-use model::Model;
+use engine::data::EngineData;
 use super::player::Player;
 use super::edible::Edible;
 
@@ -65,22 +65,22 @@ impl GameState {
 
 impl StateT for GameState {
     type Message = Msg;
-    type Model = Model;
+    type EngineData = EngineData;
 
     fn process_message(&mut self,
-                       model: &mut Self::Model,
+                       engine_data: &mut Self::EngineData,
                        msg: Self::Message)
                        -> Option<Self::Message> {
         match msg {
             Msg::Tick(x) => {
                 if self.running {
 
-                    if !self.player.process(x as f32, model, &self.settings) {
+                    if !self.player.process(x as f32, engine_data, &self.settings) {
                         return Some(Msg::Exit);
                     }
                     self.edible_eta -= (x as f32) / 1000.0;
                     if self.edible_eta <= 0.0 {
-                        self.spawn_edible(model.window_size.0 - 15, model.window_size.1 - 15);
+                        self.spawn_edible(engine_data.window_size.0 - 15, engine_data.window_size.1 - 15);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
                     let mut collisions = Vec::<usize>::new();

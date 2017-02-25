@@ -1,3 +1,6 @@
+pub mod state;
+pub mod data;
+
 use std::collections::{HashMap, HashSet, LinkedList};
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
@@ -6,15 +9,14 @@ use sdl2::ttf::Font;
 use sdl2::pixels::Color::RGB;
 use sdl2::keyboard::Keycode;
 
-use super::model::Model;
+use self::data::EngineData;
 use super::msg::{Msg, ControlCommand};
 use super::SDL2Context;
-use engine::state::StateT;
+use self::state::StateT;
 use game::state::pixel::GameState;
 use game::state::menu::MenuState;
 use super::resources;
 
-pub mod state;
 
 const FPS_LOCK: u32 = 1000 / 64;
 
@@ -36,7 +38,7 @@ lazy_static! {
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
 /// (keyboard and mouse) etc.
 pub struct Engine<'m> {
-    pub model: Model,
+    pub engine_data: EngineData,
     pub context: &'m SDL2Context,
     /// LinkedList for in-game messages
     pub messages: LinkedList<Msg>,
@@ -47,7 +49,7 @@ pub struct Engine<'m> {
     pub font: Font<'m, 'static>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
-    pub current_state: Box<StateT<Model = Model, Message = Msg>>,
+    pub current_state: Box<StateT<EngineData = EngineData, Message = Msg>>,
     marked_events: HashSet<Keycode>,
 }
 
@@ -57,7 +59,7 @@ pub trait TEngine {
     /// Message type is what we basically send around
     type Message;
     /// Model is what holds all the game state inside
-    type Model;
+    type EngineData;
 
     /// Update takes a single message, processes it and then optionally puts another one in queue
     fn update(&mut self, msg: Self::Message) -> Option<Self::Message>;
@@ -71,14 +73,14 @@ pub trait TEngine {
 
 impl<'a> Engine<'a> {
     pub fn new(sdl_context: &'a mut SDL2Context) -> Engine<'a> {
-        let model = Model::new();
+        let engine_data = EngineData::new();
         let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
         let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
         let font: Font = sdl_context.ttf
             .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
             .unwrap();
-        let window: Window = video_subsystem.window("SDL2 game", model.window_size.0, model.window_size.1)
+        let window: Window = video_subsystem.window("SDL2 game", engine_data.window_size.0, engine_data.window_size.1)
             .position_centered()
             .opengl()
             .allow_highdpi()
@@ -98,7 +100,7 @@ impl<'a> Engine<'a> {
         ]);
 
         Engine {
-            model: model,
+            engine_data: engine_data,
             context: sdl_context,
             messages: LinkedList::new(),
             event_pump: event_pump,
@@ -114,10 +116,10 @@ impl<'a> Engine<'a> {
 
 impl<'a> TEngine for Engine<'a> {
     type Message = Msg;
-    type Model = Model;
+    type EngineData = EngineData;
 
     fn update(&mut self, msg: Msg) -> Option<Msg> {
-        match self.current_state.process_message(&mut self.model, msg) {
+        match self.current_state.process_message(&mut self.engine_data, msg) {
             Some(Msg::StartGame) => {
                 let game_state = GameState::new();
                 self.current_state = Box::new(game_state);
@@ -133,7 +135,7 @@ impl<'a> TEngine for Engine<'a> {
             }
             Some(Msg::NoOp) => None,
             Some(Msg::Exit) => {
-                self.model.running = false;
+                self.engine_data.running = false;
                 None
             }
             _ => None,
@@ -193,6 +195,6 @@ impl<'a> TEngine for Engine<'a> {
             self.timer.delay(FPS_LOCK - (ticks_at_finish - ticks_at_start));
         }
         self.messages.push_back(Msg::Tick(self.timer.ticks() - ticks_at_start));
-        self.model.running
+        self.engine_data.running
     }
 }

@@ -3,7 +3,7 @@ use sdl2::rect::Rect;
 use sdl2::ttf::Font;
 use sdl2::pixels::Color::*;
 use msg::{Msg, ControlCommand};
-use model::Model;
+use engine::data::EngineData;
 use engine::state::StateT;
 
 struct MenuItem {
@@ -42,9 +42,9 @@ impl<'m> MenuState {
 
 impl StateT for MenuState {
     type Message = Msg;
-    type Model = Model;
+    type EngineData = EngineData;
 
-    fn process_message(&mut self, model: &mut Model, msg: Msg) -> Option<Msg> {
+    fn process_message(&mut self, engine_data: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
             Msg::ButtonPressed(ControlCommand::Up) => {
                 self.currently_selected -= 1;

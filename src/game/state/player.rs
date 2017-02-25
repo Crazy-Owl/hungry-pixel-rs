@@ -1,6 +1,6 @@
 use sdl2::rect::Rect;
 
-use model::Model;
+use engine::data::EngineData;
 use super::pixel::GameSettings;
 
 #[derive(Debug)]
@@ -48,7 +48,7 @@ impl Player {
 
     // Boolean result of this fn tells whether the player has not yet lost the game
     // (`true` means "continue")
-    pub fn process(&mut self, x: f32, model: &mut Model, settings: &GameSettings) -> bool {
+    pub fn process(&mut self, x: f32, engine_data: &mut EngineData, settings: &GameSettings) -> bool {
         let offset_args = (self.speed.0 * x / 1000.0,
                            self.speed.1 * x / 1000.0);
         self.offset(offset_args.0, offset_args.1);
@@ -67,8 +67,8 @@ impl Player {
             self.speed.0 = -self.speed.0;
         }
 
-        if self.x > (model.window_size.0 as f32) - self.size {
-            let new_x = model.window_size.0 as f32 - self.size;
+        if self.x > (engine_data.window_size.0 as f32) - self.size {
+            let new_x = engine_data.window_size.0 as f32 - self.size;
             self.set_x(new_x);
             self.speed.0 = -self.speed.0;
         }
@@ -78,8 +78,8 @@ impl Player {
             self.speed.1 = -self.speed.1;
         }
 
-        if self.y > (model.window_size.1 as f32) - self.size {
-            let new_y = model.window_size.1 as f32 - self.size;
+        if self.y > (engine_data.window_size.1 as f32) - self.size {
+            let new_y = engine_data.window_size.1 as f32 - self.size;
             self.set_y(new_y);
             self.speed.1 = -self.speed.1;
         }
