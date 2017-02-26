@@ -18,4 +18,5 @@ pub enum ControlCommand {
     Right,
     Escape,
     Enter,
+    Pause,
 }

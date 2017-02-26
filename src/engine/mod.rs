@@ -30,6 +30,7 @@ lazy_static! {
         hm.insert(Keycode::Right, ControlCommand::Right);
         hm.insert(Keycode::Escape, ControlCommand::Escape);
         hm.insert(Keycode::Return, ControlCommand::Enter);
+        hm.insert(Keycode::P, ControlCommand::Pause);
         hm
     };
 }
