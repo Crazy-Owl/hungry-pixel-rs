@@ -48,19 +48,20 @@ impl Player {
 
     // Boolean result of this fn tells whether the player has not yet lost the game
     // (`true` means "continue")
-    pub fn process(&mut self, x: f32, engine_data: &mut EngineData, settings: &GameSettings) -> bool {
-        let offset_args = (self.speed.0 * x / 1000.0,
-                           self.speed.1 * x / 1000.0);
+    pub fn process(&mut self,
+                   x: f32,
+                   engine_data: &mut EngineData,
+                   settings: &GameSettings)
+                   -> bool {
+        let offset_args = (self.speed.0 * x / 1000.0, self.speed.1 * x / 1000.0);
         self.offset(offset_args.0, offset_args.1);
         self.resize(-settings.deterioration_rate * x / 1000.0);
         if self.size <= 1.0 {
             println!("Sorry, you've lost!");
             return false;
         }
-        self.speed.0 += (self.direction.0 as f32) * settings.acceleration_rate *
-                               x / 1000.0;
-        self.speed.1 += (self.direction.1 as f32) * settings.acceleration_rate *
-                               x / 1000.0;
+        self.speed.0 += (self.direction.0 as f32) * settings.acceleration_rate * x / 1000.0;
+        self.speed.1 += (self.direction.1 as f32) * settings.acceleration_rate * x / 1000.0;
 
         if self.x < 0.0 {
             self.set_x(0.0);

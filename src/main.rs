@@ -1,6 +1,6 @@
-extern crate rogue;
+extern crate hungry_pixel_rs;
 
-use rogue::{Engine, TEngine, SDL2Context};
+use hungry_pixel_rs::{Engine, TEngine, SDL2Context};
 
 fn main() {
     let mut sdl_context = SDL2Context::new();

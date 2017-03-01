@@ -81,7 +81,9 @@ impl<'a> Engine<'a> {
         let font: Font = sdl_context.ttf
             .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
             .unwrap();
-        let window: Window = video_subsystem.window("SDL2 game", engine_data.window_size.0, engine_data.window_size.1)
+        let window: Window = video_subsystem.window("SDL2 game",
+                    engine_data.window_size.0,
+                    engine_data.window_size.1)
             .position_centered()
             .opengl()
             .allow_highdpi()
@@ -95,10 +97,10 @@ impl<'a> Engine<'a> {
 
         let ticks = timer.ticks();
 
-        let menu = MenuState::new(&font, &mut renderer, vec![
-            ("New Game".to_string(), Msg::StartGame),
-            ("Exit Game".to_string(), Msg::Exit)
-        ]);
+        let menu = MenuState::new(&font,
+                                  &mut renderer,
+                                  vec![("New Game".to_string(), Msg::StartGame),
+                                       ("Exit Game".to_string(), Msg::Exit)]);
 
         Engine {
             engine_data: engine_data,
@@ -127,10 +129,10 @@ impl<'a> TEngine for Engine<'a> {
                 None
             }
             Some(Msg::ToMenu) => {
-                let menu = MenuState::new(&self.font, &mut self.renderer, vec![
-                    ("New Game".to_string(), Msg::StartGame),
-                    ("Exit Game".to_string(), Msg::Exit)
-                ]);
+                let menu = MenuState::new(&self.font,
+                                          &mut self.renderer,
+                                          vec![("New Game".to_string(), Msg::StartGame),
+                                               ("Exit Game".to_string(), Msg::Exit)]);
                 self.current_state = Box::new(menu);
                 None
             }

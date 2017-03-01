@@ -80,7 +80,8 @@ impl StateT for GameState {
                     }
                     self.edible_eta -= (x as f32) / 1000.0;
                     if self.edible_eta <= 0.0 {
-                        self.spawn_edible(engine_data.window_size.0 - 15, engine_data.window_size.1 - 15);
+                        self.spawn_edible(engine_data.window_size.0 - 15,
+                                          engine_data.window_size.1 - 15);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
                     let mut collisions = Vec::<usize>::new();
