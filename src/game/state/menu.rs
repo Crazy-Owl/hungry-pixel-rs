@@ -15,12 +15,14 @@ struct MenuItem {
 pub struct MenuState {
     menu_items: Vec<MenuItem>,
     currently_selected: i8,
-    top_left: (i32, i32),
+    dimensions: (usize, usize),
 }
 
 impl<'m> MenuState {
     pub fn new(f: &Font<'m, 'static>, r: &mut Renderer, choices: Vec<(String, Msg)>) -> MenuState {
         let mut menu_items = Vec::new();
+        let mut max_width: usize = 0;
+        let mut max_height: usize = 0;
         for choice in choices {
             let surface =
                 f.render(&choice.0).solid(RGB(255, 255, 255)).expect("Could not render text!");
@@ -31,11 +33,15 @@ impl<'m> MenuState {
                 dimensions: (query.width, query.height),
                 msg: choice.1,
             });
+            if query.width > max_width as u32 {
+                max_width = query.width as usize;
+            }
+            max_height += query.height as usize;
         }
         MenuState {
             menu_items: menu_items,
             currently_selected: 0,
-            top_left: (60, 0),
+            dimensions: (max_width, max_height),
         }
     }
 }
@@ -68,23 +74,21 @@ impl StateT for MenuState {
         }
     }
 
-    fn render(&mut self, r: &mut Renderer) {
-        let mut current_y: u32 = self.top_left.1 as u32;
+    fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
+        let mut current_y: u32 = (ed.window_size.1 as u32 / 2) - (self.dimensions.1 as u32 / 2);
+        let x: u32 = (ed.window_size.0 as u32 / 2) - (self.dimensions.0 as u32 / 2);
         let mut running_counter: usize = 0;
         for item in &self.menu_items {
             r.copy(&item.texture,
                       None,
-                      Some(Rect::new(self.top_left.0 as i32,
+                      Some(Rect::new(x as i32,
                                      current_y as i32,
                                      item.dimensions.0,
                                      item.dimensions.1)))
                 .unwrap();
             if running_counter == self.currently_selected as usize {
                 r.set_draw_color(RGB(255, 255, 255));
-                r.draw_rect(Rect::new(self.top_left.0 - 20,
-                                         current_y as i32,
-                                         20,
-                                         item.dimensions.1))
+                r.draw_rect(Rect::new(x as i32 - 20, current_y as i32, 15, item.dimensions.1))
                     .unwrap();
             }
             current_y += item.dimensions.1 + 2;

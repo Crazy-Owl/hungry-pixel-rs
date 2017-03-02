@@ -2,6 +2,7 @@ TODO:
 * in-game menu (do not reset game, close via Esc)
 * display message in pause state (implement substates for that)
 * compile all messages (to texture) and store them somewhere
-* center all menus
 * remapping keys from in-game
 * try cross-compiling
+* make menu centering optional
+* builder pattern for menu (related to menu centering)

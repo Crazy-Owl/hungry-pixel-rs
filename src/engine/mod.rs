@@ -148,7 +148,7 @@ impl<'a> TEngine for Engine<'a> {
     fn render(&mut self) {
         self.renderer.set_draw_color(RGB(0, 0, 0));
         self.renderer.clear();
-        self.current_state.render(&mut self.renderer);
+        self.current_state.render(&mut self.renderer, &self.engine_data);
         self.renderer.present();
     }
 

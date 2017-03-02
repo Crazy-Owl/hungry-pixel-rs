@@ -143,7 +143,7 @@ impl StateT for GameState {
         }
     }
 
-    fn render(&mut self, r: &mut Renderer) {
+    fn render(&mut self, r: &mut Renderer, _: &EngineData) {
         r.set_draw_color(RGB(0, 255, 0));
         // get player left upper corner coordinates
         // TODO: proper handling, just player x, y for now
