@@ -5,6 +5,7 @@ pub enum Msg {
     Exit,
     Tick(u32),
     StartGame,
+    ResumeGame,
     ToMenu,
     ButtonPressed(ControlCommand),
     ButtonReleased(ControlCommand),

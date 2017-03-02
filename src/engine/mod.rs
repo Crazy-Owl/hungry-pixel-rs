@@ -125,7 +125,7 @@ impl<'a> TEngine for Engine<'a> {
     fn update(&mut self, msg: Msg) -> Option<Msg> {
         match self.current_state.process_message(&mut self.engine_data, msg) {
             Some(Msg::StartGame) => {
-                let game_state = GameState::new();
+                let game_state = GameState::new(&self.font, &mut self.renderer);
                 self.current_state = Box::new(game_state);
                 None
             }
