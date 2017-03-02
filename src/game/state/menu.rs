@@ -50,7 +50,7 @@ impl StateT for MenuState {
     type Message = Msg;
     type EngineData = EngineData;
 
-    fn process_message(&mut self, engine_data: &mut EngineData, msg: Msg) -> Option<Msg> {
+    fn process_message(&mut self, _: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
             Msg::ButtonPressed(ControlCommand::Up) => {
                 self.currently_selected -= 1;
