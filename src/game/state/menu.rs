@@ -15,14 +15,14 @@ struct MenuItem {
 pub struct MenuState {
     menu_items: Vec<MenuItem>,
     currently_selected: i8,
-    dimensions: (usize, usize),
+    dimensions: (u32, u32),
 }
 
 impl<'m> MenuState {
     pub fn new(f: &Font<'m, 'static>, r: &mut Renderer, choices: Vec<(String, Msg)>) -> MenuState {
         let mut menu_items = Vec::new();
-        let mut max_width: usize = 0;
-        let mut max_height: usize = 0;
+        let mut max_width: u32 = 0;
+        let mut max_height: u32 = 0;
         for choice in choices {
             let surface =
                 f.render(&choice.0).solid(RGB(255, 255, 255)).expect("Could not render text!");
@@ -33,10 +33,10 @@ impl<'m> MenuState {
                 dimensions: (query.width, query.height),
                 msg: choice.1,
             });
-            if query.width > max_width as u32 {
-                max_width = query.width as usize;
+            if query.width > max_width {
+                max_width = query.width;
             }
-            max_height += query.height as usize;
+            max_height += query.height;
         }
         MenuState {
             menu_items: menu_items,
@@ -75,8 +75,8 @@ impl StateT for MenuState {
     }
 
     fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
-        let mut current_y: u32 = (ed.window_size.1 as u32 / 2) - (self.dimensions.1 as u32 / 2);
-        let x: u32 = (ed.window_size.0 as u32 / 2) - (self.dimensions.0 as u32 / 2);
+        let mut current_y: u32 = (ed.window_size.1 / 2) - (self.dimensions.1 / 2);
+        let x: u32 = (ed.window_size.0 / 2) - (self.dimensions.0 / 2);
         let mut running_counter: usize = 0;
         for item in &self.menu_items {
             r.copy(&item.texture,
