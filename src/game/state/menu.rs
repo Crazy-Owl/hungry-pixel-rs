@@ -16,10 +16,15 @@ pub struct MenuState {
     menu_items: Vec<MenuItem>,
     currently_selected: i8,
     dimensions: (u32, u32),
+    on_escape: Option<Msg>,
 }
 
 impl<'m> MenuState {
-    pub fn new(f: &Font<'m, 'static>, r: &mut Renderer, choices: Vec<(String, Msg)>) -> MenuState {
+    pub fn new(f: &Font<'m, 'static>,
+               r: &mut Renderer,
+               choices: Vec<(String, Msg)>,
+               quit_on_esc: bool)
+               -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
         let mut max_height: u32 = 0;
@@ -42,6 +47,7 @@ impl<'m> MenuState {
             menu_items: menu_items,
             currently_selected: 0,
             dimensions: (max_width, max_height),
+            on_escape: if quit_on_esc { Some(Msg::Exit) } else { None },
         }
     }
 }
@@ -69,7 +75,7 @@ impl StateT for MenuState {
             Msg::ButtonPressed(ControlCommand::Enter) => {
                 Some(self.menu_items[self.currently_selected as usize].msg)
             }
-            Msg::ButtonPressed(ControlCommand::Escape) => Some(Msg::Exit),
+            Msg::ButtonPressed(ControlCommand::Escape) => self.on_escape,
             _ => None,
         }
     }

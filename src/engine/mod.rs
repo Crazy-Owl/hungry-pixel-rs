@@ -100,7 +100,8 @@ impl<'a> Engine<'a> {
         let menu = MenuState::new(&font,
                                   &mut renderer,
                                   vec![("New Game".to_string(), Msg::StartGame),
-                                       ("Exit Game".to_string(), Msg::Exit)]);
+                                       ("Exit Game".to_string(), Msg::Exit)],
+                                  true);
 
         Engine {
             engine_data: engine_data,
@@ -132,7 +133,8 @@ impl<'a> TEngine for Engine<'a> {
                 let menu = MenuState::new(&self.font,
                                           &mut self.renderer,
                                           vec![("New Game".to_string(), Msg::StartGame),
-                                               ("Exit Game".to_string(), Msg::Exit)]);
+                                               ("Exit Game".to_string(), Msg::Exit)],
+                                          true);
                 self.current_state = Box::new(menu);
                 None
             }
