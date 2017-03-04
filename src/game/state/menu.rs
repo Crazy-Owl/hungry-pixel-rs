@@ -6,6 +6,11 @@ use msg::{Msg, ControlCommand};
 use engine::data::EngineData;
 use engine::state::StateT;
 
+pub enum MenuPosition {
+    Centered,
+    Pos(u32, u32),
+}
+
 struct MenuItem {
     texture: Texture,
     dimensions: (u32, u32),
@@ -17,13 +22,15 @@ pub struct MenuState {
     currently_selected: i8,
     dimensions: (u32, u32),
     on_escape: Option<Msg>,
+    position: MenuPosition,
 }
 
 impl<'m> MenuState {
     pub fn new(f: &Font<'m, 'static>,
                r: &mut Renderer,
                choices: Vec<(String, Msg)>,
-               quit_on_esc: bool)
+               quit_on_esc: bool,
+               position: MenuPosition)
                -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
@@ -48,6 +55,7 @@ impl<'m> MenuState {
             currently_selected: 0,
             dimensions: (max_width, max_height),
             on_escape: if quit_on_esc { Some(Msg::Exit) } else { None },
+            position: position,
         }
     }
 }
@@ -82,8 +90,14 @@ impl StateT for MenuState {
     }
 
     fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
-        let mut current_y: u32 = (ed.window_size.1 / 2) - (self.dimensions.1 / 2);
-        let x: u32 = (ed.window_size.0 / 2) - (self.dimensions.0 / 2);
+        let mut current_y: u32 = match self.position {
+            MenuPosition::Centered => (ed.window_size.1 / 2) - (self.dimensions.1 / 2),
+            MenuPosition::Pos(_, y) => y
+        };
+        let x: u32 = match self.position {
+            MenuPosition::Centered => (ed.window_size.0 / 2) - (self.dimensions.0 / 2),
+            MenuPosition::Pos(x, _) => x
+        };
         let mut running_counter: usize = 0;
         for item in &self.menu_items {
             r.copy(&item.texture,

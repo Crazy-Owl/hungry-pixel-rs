@@ -14,7 +14,7 @@ use super::msg::{Msg, ControlCommand};
 use super::SDL2Context;
 use self::state::StateT;
 use game::state::pixel::GameState;
-use game::state::menu::MenuState;
+use game::state::menu::{MenuState, MenuPosition};
 use super::resources;
 
 
@@ -116,7 +116,8 @@ impl<'a> Engine<'a> {
                                 &mut self.renderer,
                                 vec![("Resume".to_string(), Msg::ResumeGame),
                                      ("Exit to main Menu".to_string(), Msg::PopState(2))],
-                                false))
+                                false,
+                                MenuPosition::Centered))
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
@@ -124,7 +125,8 @@ impl<'a> Engine<'a> {
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
                                      ("Exit Game".to_string(), Msg::Exit)],
-                                true))
+                                true,
+                                MenuPosition::Centered))
     }
 
     pub fn start_game(&mut self) {
