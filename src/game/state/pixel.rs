@@ -164,8 +164,8 @@ impl StateT for GameState {
                 self.player.direction.0 = 0;
                 None
             }
-            Msg::ToMenu => Some(Msg::ToMenu),
-            _ => None,
+            Msg::NoOp => None,
+            msg => Some(msg),
         }
     }
 

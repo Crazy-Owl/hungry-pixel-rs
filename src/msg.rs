@@ -9,6 +9,7 @@ pub enum Msg {
     ToMenu,
     ButtonPressed(ControlCommand),
     ButtonReleased(ControlCommand),
+    PopState,
 }
 
 #[derive(Debug, Clone, Copy)]

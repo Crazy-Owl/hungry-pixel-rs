@@ -50,7 +50,7 @@ pub struct Engine<'m> {
     pub font: Font<'m, 'static>, // TODO: provide a font cache (just like image cache)
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
-    pub current_state: Box<StateT<EngineData = EngineData, Message = Msg>>,
+    pub states_stack: Vec<Box<StateT<EngineData = EngineData, Message = Msg>>>,
     marked_events: HashSet<Keycode>,
 }
 
@@ -112,7 +112,7 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
-            current_state: Box::new(menu),
+            states_stack: vec![Box::new(menu)],
             marked_events: HashSet::new(),
         }
     }
@@ -123,19 +123,32 @@ impl<'a> TEngine for Engine<'a> {
     type EngineData = EngineData;
 
     fn update(&mut self, msg: Msg) -> Option<Msg> {
-        match self.current_state.process_message(&mut self.engine_data, msg) {
+        let mut current_msg = Some(msg);
+        'stack_propagation: for index in (0..self.states_stack.len()).rev() {
+            match (&mut self.states_stack[index]).process_message(&mut self.engine_data, current_msg.unwrap()) {
+                None => {
+                    current_msg = None;
+                    break 'stack_propagation;
+                },
+                Some(message) => {
+                    current_msg = Some(message);
+                    continue 'stack_propagation;
+                }
+            }
+        }
+        match current_msg {
             Some(Msg::StartGame) => {
                 let game_state = GameState::new(&self.font, &mut self.renderer);
-                self.current_state = Box::new(game_state);
+                self.states_stack.push(Box::new(game_state));
                 None
             }
             Some(Msg::ToMenu) => {
                 let menu = MenuState::new(&self.font,
                                           &mut self.renderer,
-                                          vec![("New Game".to_string(), Msg::StartGame),
-                                               ("Exit Game".to_string(), Msg::Exit)],
+                                          vec![("New game".to_string(), Msg::StartGame),
+                                               ("Exit game".to_string(), Msg::Exit)],
                                           true);
-                self.current_state = Box::new(menu);
+                self.states_stack.push(Box::new(menu));
                 None
             }
             Some(Msg::NoOp) => None,
@@ -143,14 +156,16 @@ impl<'a> TEngine for Engine<'a> {
                 self.engine_data.running = false;
                 None
             }
-            _ => None,
+            _ => None
         }
     }
 
     fn render(&mut self) {
         self.renderer.set_draw_color(RGB(0, 0, 0));
         self.renderer.clear();
-        self.current_state.render(&mut self.renderer, &self.engine_data);
+        if let Some(state) = self.states_stack.last_mut() {
+            state.render(&mut self.renderer, &self.engine_data);
+        }
         self.renderer.present();
     }
 
@@ -172,7 +187,7 @@ impl<'a> TEngine for Engine<'a> {
             }
 
             match event {
-                Quit { .. } => self.messages.push_back(Msg::ButtonPressed(ControlCommand::Escape)),
+                Quit { .. } => self.messages.push_back(Msg::Exit),
                 KeyDown { keycode: Some(x), .. } => {
                     if let Some(command) = EVENTS_MAPPING.get(&x) {
                         self.messages.push_back(Msg::ButtonPressed(*command))

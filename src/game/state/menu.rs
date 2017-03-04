@@ -58,6 +58,7 @@ impl StateT for MenuState {
 
     fn process_message(&mut self, _: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
+            Msg::Tick(_) => None,
             Msg::ButtonPressed(ControlCommand::Up) => {
                 self.currently_selected -= 1;
                 if self.currently_selected < 0 {
@@ -76,7 +77,7 @@ impl StateT for MenuState {
                 Some(self.menu_items[self.currently_selected as usize].msg)
             }
             Msg::ButtonPressed(ControlCommand::Escape) => self.on_escape,
-            _ => None,
+            msg => Some(msg),
         }
     }
 

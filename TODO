@@ -1,9 +1,9 @@
 TODO:
+* get rid of "menu" field in gamestate
 * display message in pause state
 * compile all messages (to textures) and store them somewhere
 * remapping keys from in-game
 * try cross-compiling
 * make menu centering optional
 * builder pattern for menu (related to menu centering)
-* implement states stack, no need for fields like substates etc.
 * Show game title in menu / menu title field
