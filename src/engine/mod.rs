@@ -90,18 +90,12 @@ impl<'a> Engine<'a> {
             .build()
             .expect("Could not create window!");
 
-        let mut renderer: Renderer<'static> = window.renderer()
+        let renderer: Renderer<'static> = window.renderer()
             .accelerated()
             .build()
             .expect("Could not aquire renderer");
 
         let ticks = timer.ticks();
-
-        let menu = MenuState::new(&font,
-                                  &mut renderer,
-                                  vec![("New Game".to_string(), Msg::StartGame),
-                                       ("Exit Game".to_string(), Msg::Exit)],
-                                  true);
 
         Engine {
             engine_data: engine_data,
@@ -112,9 +106,30 @@ impl<'a> Engine<'a> {
             timer: timer,
             font: font,
             last_update: ticks,
-            states_stack: vec![Box::new(menu)],
+            states_stack: vec![],
             marked_events: HashSet::new(),
         }
+    }
+
+    fn in_game_menu(&mut self) -> Box<MenuState> {
+        Box::new(MenuState::new(&self.font,
+                                &mut self.renderer,
+                                vec![("Resume".to_string(), Msg::ResumeGame),
+                                     ("Exit to main Menu".to_string(), Msg::PopState(2))],
+                                false))
+    }
+
+    fn main_menu(&mut self) -> Box<MenuState> {
+        Box::new(MenuState::new(&self.font,
+                                &mut self.renderer,
+                                vec![("New Game".to_string(), Msg::StartGame),
+                                     ("Exit Game".to_string(), Msg::Exit)],
+                                true))
+    }
+
+    pub fn start_game(&mut self) {
+        let main_menu = self.main_menu();
+        self.states_stack.push(main_menu);
     }
 }
 
@@ -125,11 +140,12 @@ impl<'a> TEngine for Engine<'a> {
     fn update(&mut self, msg: Msg) -> Option<Msg> {
         let mut current_msg = Some(msg);
         'stack_propagation: for index in (0..self.states_stack.len()).rev() {
-            match (&mut self.states_stack[index]).process_message(&mut self.engine_data, current_msg.unwrap()) {
+            match (&mut self.states_stack[index])
+                .process_message(&mut self.engine_data, current_msg.unwrap()) {
                 None => {
                     current_msg = None;
                     break 'stack_propagation;
-                },
+                }
                 Some(message) => {
                     current_msg = Some(message);
                     continue 'stack_propagation;
@@ -138,25 +154,36 @@ impl<'a> TEngine for Engine<'a> {
         }
         match current_msg {
             Some(Msg::StartGame) => {
-                let game_state = GameState::new(&self.font, &mut self.renderer);
+                let game_state = GameState::new();
                 self.states_stack.push(Box::new(game_state));
                 None
             }
-            Some(Msg::ToMenu) => {
-                let menu = MenuState::new(&self.font,
-                                          &mut self.renderer,
-                                          vec![("New game".to_string(), Msg::StartGame),
-                                               ("Exit game".to_string(), Msg::Exit)],
-                                          true);
-                self.states_stack.push(Box::new(menu));
+            Some(Msg::ToMainMenu) => {
+                let menu = self.main_menu();
+                self.states_stack.push(menu);
+                None
+            }
+            Some(Msg::ShowGameMenu) => {
+                let menu = self.in_game_menu();
+                self.states_stack.push(menu);
+                None
+            }
+            Some(Msg::PopState(x)) => {
+                for _ in 0..x {
+                    self.states_stack.pop();
+                }
                 None
             }
             Some(Msg::NoOp) => None,
+            Some(Msg::ResumeGame) => {
+                self.states_stack.pop();
+                None
+            }
             Some(Msg::Exit) => {
                 self.engine_data.running = false;
                 None
             }
-            _ => None
+            _ => None,
         }
     }
 

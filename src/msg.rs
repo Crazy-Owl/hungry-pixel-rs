@@ -6,10 +6,11 @@ pub enum Msg {
     Tick(u32),
     StartGame,
     ResumeGame,
-    ToMenu,
+    ToMainMenu,
+    ShowGameMenu,
     ButtonPressed(ControlCommand),
     ButtonReleased(ControlCommand),
-    PopState,
+    PopState(usize),
 }
 
 #[derive(Debug, Clone, Copy)]

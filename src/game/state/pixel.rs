@@ -1,6 +1,5 @@
 use sdl2::render::Renderer;
 use sdl2::pixels::Color::*;
-use sdl2::ttf::Font;
 
 use engine::state::StateT;
 use rand;
@@ -9,7 +8,6 @@ use msg::{Msg, ControlCommand};
 use engine::data::EngineData;
 use super::player::Player;
 use super::edible::Edible;
-use super::menu::MenuState;
 
 pub struct GameSettings {
     pub max_velocity: f32,
@@ -39,26 +37,17 @@ pub struct GameState {
     edible_eta: f32,
     edibles: Vec<Edible>,
     settings: GameSettings,
-    game_menu: MenuState,
-    show_menu: bool,
 }
 
 impl GameState {
-    pub fn new<'a>(f: &Font<'a, 'static>, r: &mut Renderer) -> GameState {
+    pub fn new() -> GameState {
         let settings = GameSettings::new();
-        let menu = MenuState::new(f,
-                                  r,
-                                  vec![("Resume".to_string(), Msg::ResumeGame),
-                                       ("Exit to main Menu".to_string(), Msg::ToMenu)],
-                                  false);
         GameState {
             running: true,
             player: Player::new(),
             edible_eta: settings.edibles_spawn_rate,
             edibles: Vec::new(),
             settings: settings,
-            game_menu: menu,
-            show_menu: false,
         }
     }
 
@@ -82,12 +71,7 @@ impl StateT for GameState {
                        engine_data: &mut Self::EngineData,
                        msg: Self::Message)
                        -> Option<Self::Message> {
-        let message: Option<Self::Message> = if self.show_menu {
-            self.game_menu.process_message(engine_data, msg)
-        } else {
-            Some(msg)
-        };
-        match message.unwrap_or(Msg::NoOp) {
+        match msg {
             Msg::Tick(x) => {
                 if self.running {
 
@@ -123,14 +107,12 @@ impl StateT for GameState {
                 None
             }
             Msg::ButtonPressed(ControlCommand::Escape) => {
-                self.show_menu = !self.show_menu;
-                self.running = !self.running;
-                None
+                self.running = false;
+                Some(Msg::ShowGameMenu)
             }
             Msg::ResumeGame => {
-                self.show_menu = false;
                 self.running = true;
-                None
+                Some(Msg::ResumeGame)
             }
             Msg::ButtonPressed(ControlCommand::Up) => {
                 self.player.direction.1 = -1i8;
@@ -169,12 +151,8 @@ impl StateT for GameState {
         }
     }
 
-    fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
+    fn render(&mut self, r: &mut Renderer, _: &EngineData) {
         r.set_draw_color(RGB(0, 255, 0));
-        if self.show_menu {
-            self.game_menu.render(r, ed);
-            return;
-        }
         // get player left upper corner coordinates
         // TODO: proper handling, just player x, y for now
         // this will cause strange behavior, and should be eliminated
