@@ -1,4 +1,6 @@
 TODO:
+* group messages types
+* add menustate with FnOnce-based actions
 * remapping keys from in-game
 * try cross-compiling
 * builder pattern for menu (related to menu centering)
