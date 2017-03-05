@@ -133,7 +133,10 @@ impl StateT for MenuState {
                 .unwrap();
             if running_counter == self.currently_selected as usize {
                 r.set_draw_color(RGB(255, 255, 255));
-                r.draw_rect(Rect::new(x as i32 - 20, current_y as i32, 15, item.dimensions.1))
+                r.fill_rect(Some(Rect::new(x as i32 - 20,
+                                              current_y as i32,
+                                              15,
+                                              item.dimensions.1)))
                     .unwrap();
             }
             current_y += item.dimensions.1 + 2;

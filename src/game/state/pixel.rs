@@ -156,11 +156,11 @@ impl StateT for GameState {
         // get player left upper corner coordinates
         // TODO: proper handling, just player x, y for now
         // this will cause strange behavior, and should be eliminated
-        r.draw_rect(self.player.rect)
+        r.fill_rect(Some(self.player.rect))
             .unwrap();
         r.set_draw_color(RGB(255, 128, 0));
         for edible in &self.edibles {
-            r.draw_rect(edible.rect)
+            r.fill_rect(Some(edible.rect))
                 .unwrap();
         }
     }
