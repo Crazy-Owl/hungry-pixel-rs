@@ -23,6 +23,7 @@ pub struct MenuState {
     dimensions: (u32, u32),
     on_escape: Option<Msg>,
     position: MenuPosition,
+    decoration: Option<MenuItem>,
 }
 
 impl<'m> MenuState {
@@ -30,7 +31,8 @@ impl<'m> MenuState {
                r: &mut Renderer,
                choices: Vec<(String, Msg)>,
                quit_on_esc: bool,
-               position: MenuPosition)
+               position: MenuPosition,
+               decoration_parameters: Option<(&Font<'m, 'static>, String)>)
                -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
@@ -50,12 +52,25 @@ impl<'m> MenuState {
             }
             max_height += query.height;
         }
+        let decoration_item = if let Some((fd, sd)) = decoration_parameters {
+            let surface = fd.render(&sd).solid(RGB(255, 255, 255)).expect("Could not render text!");
+            let texture = r.create_texture_from_surface(&surface).expect("Could not render text!");
+            let query = texture.query();
+            Some(MenuItem {
+                texture: texture,
+                dimensions: (query.width, query.height),
+                msg: Msg::NoOp,
+            })
+        } else {
+            None
+        };
         MenuState {
             menu_items: menu_items,
             currently_selected: 0,
             dimensions: (max_width, max_height),
             on_escape: if quit_on_esc { Some(Msg::Exit) } else { None },
             position: position,
+            decoration: decoration_item,
         }
     }
 }
@@ -92,12 +107,21 @@ impl StateT for MenuState {
     fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
         let mut current_y: u32 = match self.position {
             MenuPosition::Centered => (ed.window_size.1 / 2) - (self.dimensions.1 / 2),
-            MenuPosition::Pos(_, y) => y
+            MenuPosition::Pos(_, y) => y,
         };
         let x: u32 = match self.position {
             MenuPosition::Centered => (ed.window_size.0 / 2) - (self.dimensions.0 / 2),
-            MenuPosition::Pos(x, _) => x
+            MenuPosition::Pos(x, _) => x,
         };
+        if let Some(ref it) = self.decoration {
+            r.copy(&it.texture,
+                      None,
+                      Some(Rect::new((ed.window_size.0 / 2 - it.dimensions.0 / 2) as i32,
+                                     (current_y - it.dimensions.1) as i32,
+                                     it.dimensions.0,
+                                     it.dimensions.1)))
+                .unwrap();
+        }
         let mut running_counter: usize = 0;
         for item in &self.menu_items {
             r.copy(&item.texture,

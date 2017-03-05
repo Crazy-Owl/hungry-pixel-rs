@@ -84,6 +84,10 @@ impl<'ttf> Engine<'ttf> {
             .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
             .unwrap();
         font_cache.insert("default".to_string(), font);
+        let font = sdl_context.ttf
+            .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 24)
+            .unwrap();
+        font_cache.insert("default-large".to_string(), font);
         let window: Window = video_subsystem.window("SDL2 game",
                     engine_data.window_size.0,
                     engine_data.window_size.1)
@@ -116,22 +120,28 @@ impl<'ttf> Engine<'ttf> {
 
     fn in_game_menu(&mut self) -> Box<MenuState> {
         let font = self.font_cache.get("default").expect("Unable to open default font!");
+        let font_large =
+            self.font_cache.get("default-large").expect("Unable to open default font!");
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("Resume".to_string(), Msg::ResumeGame),
                                      ("Exit to main Menu".to_string(), Msg::PopState(2))],
                                 false,
-                                MenuPosition::Centered))
+                                MenuPosition::Centered,
+                                Some((font_large, "PAUSE".to_string()))))
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
         let font = self.font_cache.get("default").expect("Unable to open default font!");
+        let font_large =
+            self.font_cache.get("default-large").expect("Unable to open default font!");
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
                                      ("Exit Game".to_string(), Msg::Exit)],
                                 true,
-                                MenuPosition::Centered))
+                                MenuPosition::Centered,
+                                Some((font_large, "HUNGRY PIXEL".to_string()))))
     }
 
     pub fn start_game(&mut self) {
