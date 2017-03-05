@@ -1,5 +1,6 @@
 pub mod state;
 pub mod data;
+pub mod context;
 
 use std::collections::{HashMap, HashSet, LinkedList};
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
@@ -11,7 +12,7 @@ use sdl2::keyboard::Keycode;
 
 use self::data::EngineData;
 use super::msg::{Msg, ControlCommand};
-use super::SDL2Context;
+use engine::context::SDL2Context;
 use self::state::StateT;
 use game::state::pixel::GameState;
 use game::state::menu::{MenuState, MenuPosition};
@@ -38,16 +39,16 @@ lazy_static! {
 
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
 /// (keyboard and mouse) etc.
-pub struct Engine<'m> {
+pub struct Engine<'ttf> {
     pub engine_data: EngineData,
-    pub context: &'m SDL2Context,
+    pub context: &'ttf SDL2Context,
     /// LinkedList for in-game messages
     pub messages: LinkedList<Msg>,
     pub event_pump: EventPump,
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
-    pub font: Font<'m, 'static>, // TODO: provide a font cache (just like image cache)
+    pub font_cache: HashMap<String, Font<'ttf, 'static>>,
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
     pub states_stack: Vec<Box<StateT<EngineData = EngineData, Message = Msg>>>,
@@ -72,15 +73,17 @@ pub trait TEngine {
     fn process(&mut self) -> bool;
 }
 
-impl<'a> Engine<'a> {
-    pub fn new(sdl_context: &'a mut SDL2Context) -> Engine<'a> {
+impl<'ttf> Engine<'ttf> {
+    pub fn new(sdl_context: &'ttf mut SDL2Context) -> Engine<'ttf> {
         let engine_data = EngineData::new();
         let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
         let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
-        let font: Font = sdl_context.ttf
+        let mut font_cache: HashMap<String, Font<'ttf, 'static>> = HashMap::new();
+        let font = sdl_context.ttf
             .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
             .unwrap();
+        font_cache.insert("default".to_string(), font);
         let window: Window = video_subsystem.window("SDL2 game",
                     engine_data.window_size.0,
                     engine_data.window_size.1)
@@ -104,7 +107,7 @@ impl<'a> Engine<'a> {
             event_pump: event_pump,
             renderer: renderer,
             timer: timer,
-            font: font,
+            font_cache: font_cache,
             last_update: ticks,
             states_stack: vec![],
             marked_events: HashSet::new(),
@@ -112,7 +115,8 @@ impl<'a> Engine<'a> {
     }
 
     fn in_game_menu(&mut self) -> Box<MenuState> {
-        Box::new(MenuState::new(&self.font,
+        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("Resume".to_string(), Msg::ResumeGame),
                                      ("Exit to main Menu".to_string(), Msg::PopState(2))],
@@ -121,7 +125,8 @@ impl<'a> Engine<'a> {
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
-        Box::new(MenuState::new(&self.font,
+        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
                                      ("Exit Game".to_string(), Msg::Exit)],

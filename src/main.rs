@@ -1,6 +1,7 @@
 extern crate hungry_pixel_rs;
 
-use hungry_pixel_rs::{Engine, TEngine, SDL2Context};
+use hungry_pixel_rs::{Engine, TEngine};
+use hungry_pixel_rs::engine::context::SDL2Context;
 
 fn main() {
     let mut sdl_context = SDL2Context::new();
