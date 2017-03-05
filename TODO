@@ -1,5 +1,4 @@
 TODO:
-* compile all messages (to textures) and store them somewhere
 * remapping keys from in-game
 * try cross-compiling
 * builder pattern for menu (related to menu centering)
