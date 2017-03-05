@@ -164,4 +164,8 @@ impl StateT for GameState {
                 .unwrap();
         }
     }
+
+    fn is_fullscreen(&self) -> bool {
+        true
+    }
 }

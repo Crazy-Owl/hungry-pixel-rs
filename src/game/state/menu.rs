@@ -24,6 +24,7 @@ pub struct MenuState {
     on_escape: Option<Msg>,
     position: MenuPosition,
     decoration: Option<MenuItem>,
+    is_fullscreen: bool,
 }
 
 impl<'m> MenuState {
@@ -32,7 +33,8 @@ impl<'m> MenuState {
                choices: Vec<(String, Msg)>,
                quit_on_esc: bool,
                position: MenuPosition,
-               decoration_parameters: Option<(&Font<'m, 'static>, String)>)
+               decoration_parameters: Option<(&Font<'m, 'static>, String)>,
+               is_fullscreen: bool)
                -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
@@ -71,6 +73,7 @@ impl<'m> MenuState {
             on_escape: if quit_on_esc { Some(Msg::Exit) } else { None },
             position: position,
             decoration: decoration_item,
+            is_fullscreen: is_fullscreen,
         }
     }
 }
@@ -142,5 +145,9 @@ impl StateT for MenuState {
             current_y += item.dimensions.1 + 2;
             running_counter += 1;
         }
+    }
+
+    fn is_fullscreen(&self) -> bool {
+        self.is_fullscreen
     }
 }

@@ -128,7 +128,8 @@ impl<'ttf> Engine<'ttf> {
                                      ("Exit to main Menu".to_string(), Msg::PopState(2))],
                                 false,
                                 MenuPosition::Centered,
-                                Some((font_large, "PAUSE".to_string()))))
+                                Some((font_large, "PAUSE".to_string())),
+                                false))
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
@@ -141,7 +142,8 @@ impl<'ttf> Engine<'ttf> {
                                      ("Exit Game".to_string(), Msg::Exit)],
                                 true,
                                 MenuPosition::Centered,
-                                Some((font_large, "HUNGRY PIXEL".to_string()))))
+                                Some((font_large, "HUNGRY PIXEL".to_string())),
+                                true))
     }
 
     pub fn start_game(&mut self) {
@@ -207,9 +209,21 @@ impl<'a> TEngine for Engine<'a> {
     fn render(&mut self) {
         self.renderer.set_draw_color(RGB(0, 0, 0));
         self.renderer.clear();
-        if let Some(state) = self.states_stack.last_mut() {
-            state.render(&mut self.renderer, &self.engine_data);
+        if self.states_stack.len() > 0 {
+            let mut last_drawable_index = self.states_stack.len();
+            'fullscreen: for index in (0..self.states_stack.len()).rev() {
+                if self.states_stack[index].is_fullscreen() {
+                    last_drawable_index = index;
+                    break 'fullscreen;
+                }
+            }
+            for index in last_drawable_index..self.states_stack.len() {
+                self.states_stack[index].render(&mut self.renderer, &self.engine_data);
+            }
         }
+        // if let Some(state) = self.states_stack.last_mut() {
+        //     state.render(&mut self.renderer, &self.engine_data);
+        // }
         self.renderer.present();
     }
 
