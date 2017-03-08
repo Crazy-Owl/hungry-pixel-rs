@@ -147,6 +147,7 @@ impl StateT for GameState {
                 self.player.direction.0 = 0;
                 None
             }
+            Msg::ControlCommand(_) => None,
             Msg::NoOp => None,
             msg => Some(msg),
         }
