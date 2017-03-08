@@ -92,15 +92,19 @@ impl<'ttf> Engine<'ttf> {
                     engine_data.window_size.0,
                     engine_data.window_size.1)
             .position_centered()
+            .resizable()
             .opengl()
             .allow_highdpi()
             .build()
             .expect("Could not create window!");
 
-        let renderer: Renderer<'static> = window.renderer()
+        let mut renderer: Renderer<'static> = window.renderer()
             .accelerated()
             .build()
             .expect("Could not aquire renderer");
+
+        renderer.set_logical_size(engine_data.window_size.0, engine_data.window_size.1)
+            .expect("Could not set logical size of renderer!");
 
         let ticks = timer.ticks();
 
