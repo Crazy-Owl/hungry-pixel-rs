@@ -129,7 +129,8 @@ impl<'ttf> Engine<'ttf> {
             self.font_cache.get("default-large").expect("Unable to open default font!");
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
-                                vec![("Resume".to_string(), Msg::MenuCommand(MenuMsg::ResumeGame)),
+                                vec![("Resume".to_string(),
+                                      Msg::MenuCommand(MenuMsg::ResumeGame)),
                                      ("Exit to main Menu".to_string(), Msg::PopState(2))],
                                 false,
                                 MenuPosition::Centered,
