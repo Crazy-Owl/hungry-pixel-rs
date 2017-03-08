@@ -2,7 +2,7 @@ use sdl2::render::{Texture, Renderer};
 use sdl2::rect::Rect;
 use sdl2::ttf::Font;
 use sdl2::pixels::Color::*;
-use msg::{Msg, ControlCommand};
+use msg::{Msg, Control};
 use engine::data::EngineData;
 use engine::state::StateT;
 
@@ -85,24 +85,24 @@ impl StateT for MenuState {
     fn process_message(&mut self, _: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
             Msg::Tick(_) => None,
-            Msg::ButtonPressed(ControlCommand::Up) => {
+            Msg::ControlCommand(Control::Up) => {
                 self.currently_selected -= 1;
                 if self.currently_selected < 0 {
                     self.currently_selected = self.menu_items.len() as i8 - 1;
                 }
                 None
             }
-            Msg::ButtonPressed(ControlCommand::Down) => {
+            Msg::ControlCommand(Control::Down) => {
                 self.currently_selected += 1;
                 if self.currently_selected > self.menu_items.len() as i8 - 1 {
                     self.currently_selected = 0;
                 }
                 None
             }
-            Msg::ButtonPressed(ControlCommand::Enter) => {
+            Msg::ControlCommand(Control::Enter) => {
                 Some(self.menu_items[self.currently_selected as usize].msg)
             }
-            Msg::ButtonPressed(ControlCommand::Escape) => self.on_escape,
+            Msg::ControlCommand(Control::Escape) => self.on_escape,
             msg => Some(msg),
         }
     }

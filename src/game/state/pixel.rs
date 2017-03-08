@@ -1,10 +1,11 @@
 use sdl2::render::Renderer;
 use sdl2::pixels::Color::*;
+use sdl2::keyboard::Keycode;
 
 use engine::state::StateT;
 use rand;
 
-use msg::{Msg, ControlCommand};
+use msg::{Msg, Control, MenuMsg};
 use engine::data::EngineData;
 use super::player::Player;
 use super::edible::Edible;
@@ -102,47 +103,47 @@ impl StateT for GameState {
                 }
                 Some(Msg::Tick(x))
             }
-            Msg::ButtonPressed(ControlCommand::Pause) => {
+            Msg::ControlCommand(Control::Pause) => {
                 self.running = !self.running;
                 None
             }
-            Msg::ButtonPressed(ControlCommand::Escape) => {
+            Msg::ControlCommand(Control::Escape) => {
                 self.running = false;
-                Some(Msg::ShowGameMenu)
+                Some(Msg::MenuCommand(MenuMsg::ShowGameMenu))
             }
-            Msg::ResumeGame => {
+            Msg::MenuCommand(MenuMsg::ResumeGame) => {
                 self.running = true;
-                Some(Msg::ResumeGame)
+                Some(Msg::MenuCommand(MenuMsg::ResumeGame))
             }
-            Msg::ButtonPressed(ControlCommand::Up) => {
+            Msg::ButtonPressed(Keycode::Up) => {
                 self.player.direction.1 = -1i8;
                 None
             }
-            Msg::ButtonPressed(ControlCommand::Down) => {
+            Msg::ButtonPressed(Keycode::Down) => {
                 self.player.direction.1 = 1i8;
                 None
             }
-            Msg::ButtonPressed(ControlCommand::Left) => {
+            Msg::ButtonPressed(Keycode::Left) => {
                 self.player.direction.0 = -1i8;
                 None
             }
-            Msg::ButtonPressed(ControlCommand::Right) => {
+            Msg::ButtonPressed(Keycode::Right) => {
                 self.player.direction.0 = 1i8;
                 None
             }
-            Msg::ButtonReleased(ControlCommand::Up) => {
+            Msg::ButtonReleased(Keycode::Up) => {
                 self.player.direction.1 = 0;
                 None
             }
-            Msg::ButtonReleased(ControlCommand::Down) => {
+            Msg::ButtonReleased(Keycode::Down) => {
                 self.player.direction.1 = 0;
                 None
             }
-            Msg::ButtonReleased(ControlCommand::Left) => {
+            Msg::ButtonReleased(Keycode::Left) => {
                 self.player.direction.0 = 0;
                 None
             }
-            Msg::ButtonReleased(ControlCommand::Right) => {
+            Msg::ButtonReleased(Keycode::Right) => {
                 self.player.direction.0 = 0;
                 None
             }

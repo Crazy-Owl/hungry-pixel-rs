@@ -11,7 +11,7 @@ use sdl2::pixels::Color::RGB;
 use sdl2::keyboard::Keycode;
 
 use self::data::EngineData;
-use super::msg::{Msg, ControlCommand};
+use super::msg::{Msg, Control, MenuMsg};
 use engine::context::SDL2Context;
 use self::state::StateT;
 use game::state::pixel::GameState;
@@ -22,16 +22,16 @@ use super::resources;
 const FPS_LOCK: u32 = 1000 / 64;
 
 lazy_static! {
-    pub static ref EVENTS_MAPPING: HashMap<Keycode, ControlCommand> = {
+    pub static ref EVENTS_MAPPING: HashMap<Keycode, Control> = {
         let mut hm = HashMap::new();
         // TODO: do something with these invocations, probably a macro use?
-        hm.insert(Keycode::Up, ControlCommand::Up);
-        hm.insert(Keycode::Down, ControlCommand::Down);
-        hm.insert(Keycode::Left, ControlCommand::Left);
-        hm.insert(Keycode::Right, ControlCommand::Right);
-        hm.insert(Keycode::Escape, ControlCommand::Escape);
-        hm.insert(Keycode::Return, ControlCommand::Enter);
-        hm.insert(Keycode::P, ControlCommand::Pause);
+        hm.insert(Keycode::Up, Control::Up);
+        hm.insert(Keycode::Down, Control::Down);
+        hm.insert(Keycode::Left, Control::Left);
+        hm.insert(Keycode::Right, Control::Right);
+        hm.insert(Keycode::Escape, Control::Escape);
+        hm.insert(Keycode::Return, Control::Enter);
+        hm.insert(Keycode::P, Control::Pause);
         hm
     };
 }
@@ -124,7 +124,7 @@ impl<'ttf> Engine<'ttf> {
             self.font_cache.get("default-large").expect("Unable to open default font!");
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
-                                vec![("Resume".to_string(), Msg::ResumeGame),
+                                vec![("Resume".to_string(), Msg::MenuCommand(MenuMsg::ResumeGame)),
                                      ("Exit to main Menu".to_string(), Msg::PopState(2))],
                                 false,
                                 MenuPosition::Centered,
@@ -177,12 +177,12 @@ impl<'a> TEngine for Engine<'a> {
                 self.states_stack.push(Box::new(game_state));
                 None
             }
-            Some(Msg::ToMainMenu) => {
+            Some(Msg::MenuCommand(MenuMsg::ToMainMenu)) => {
                 let menu = self.main_menu();
                 self.states_stack.push(menu);
                 None
             }
-            Some(Msg::ShowGameMenu) => {
+            Some(Msg::MenuCommand(MenuMsg::ShowGameMenu)) => {
                 let menu = self.in_game_menu();
                 self.states_stack.push(menu);
                 None
@@ -194,7 +194,7 @@ impl<'a> TEngine for Engine<'a> {
                 None
             }
             Some(Msg::NoOp) => None,
-            Some(Msg::ResumeGame) => {
+            Some(Msg::MenuCommand(MenuMsg::ResumeGame)) => {
                 self.states_stack.pop();
                 None
             }
@@ -247,14 +247,13 @@ impl<'a> TEngine for Engine<'a> {
             match event {
                 Quit { .. } => self.messages.push_back(Msg::Exit),
                 KeyDown { keycode: Some(x), .. } => {
+                    self.messages.push_back(Msg::ButtonPressed(x));
                     if let Some(command) = EVENTS_MAPPING.get(&x) {
-                        self.messages.push_back(Msg::ButtonPressed(*command))
+                        self.messages.push_back(Msg::ControlCommand(*command))
                     }
                 }
                 KeyUp { keycode: Some(x), .. } => {
-                    if let Some(command) = EVENTS_MAPPING.get(&x) {
-                        self.messages.push_back(Msg::ButtonReleased(*command))
-                    }
+                    self.messages.push_back(Msg::ButtonReleased(x));
                 }
                 Window { win_event: WindowEvent::Resized(x, y), .. } => {
                     println!("Window resized, {} {}", x, y);

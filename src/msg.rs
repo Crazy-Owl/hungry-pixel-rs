@@ -1,3 +1,4 @@
+use sdl2::keyboard::Keycode;
 /// Message type
 #[derive(Debug, Clone, Copy)]
 pub enum Msg {
@@ -5,16 +6,22 @@ pub enum Msg {
     Exit,
     Tick(u32),
     StartGame,
-    ResumeGame,
-    ToMainMenu,
-    ShowGameMenu,
-    ButtonPressed(ControlCommand),
-    ButtonReleased(ControlCommand),
+    MenuCommand(MenuMsg),
+    ButtonPressed(Keycode),
+    ButtonReleased(Keycode),
+    ControlCommand(Control),
     PopState(usize),
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum ControlCommand {
+pub enum MenuMsg {
+    ToMainMenu,
+    ShowGameMenu,
+    ResumeGame,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Control {
     Up,
     Down,
     Left,
@@ -22,4 +29,5 @@ pub enum ControlCommand {
     Escape,
     Enter,
     Pause,
+    Space,
 }
