@@ -9,6 +9,7 @@ use sdl2::video::Window;
 use sdl2::ttf::Font;
 use sdl2::pixels::Color::RGB;
 use sdl2::keyboard::Keycode;
+use sdl2::rect::Rect;
 
 use self::data::EngineData;
 use super::msg::{Msg, Control, MenuMsg};
@@ -213,6 +214,15 @@ impl<'a> TEngine for Engine<'a> {
     fn render(&mut self) {
         self.renderer.set_draw_color(RGB(0, 0, 0));
         self.renderer.clear();
+        {
+            self.renderer.set_draw_color(RGB(150, 150, 150));
+            self.renderer
+                .draw_rect(Rect::new(0,
+                                     0,
+                                     self.engine_data.window_size.0,
+                                     self.engine_data.window_size.1))
+                .unwrap();
+        }
         if self.states_stack.len() > 0 {
             let mut last_drawable_index = self.states_stack.len();
             'fullscreen: for index in (0..self.states_stack.len()).rev() {
