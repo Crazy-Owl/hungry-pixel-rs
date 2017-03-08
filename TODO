@@ -4,3 +4,4 @@ TODO:
 * remapping keys from in-game
 * try cross-compiling
 * builder pattern for menu (related to menu centering)
+* static views with text (start/finish)
