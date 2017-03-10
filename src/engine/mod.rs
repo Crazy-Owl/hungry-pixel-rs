@@ -240,7 +240,11 @@ impl<'a> TEngine for Engine<'a> {
                 self.engine_data.running = false;
                 None
             }
-            _ => None,
+            Some(x) => {
+                println!("Unprocessed message discarded: {:?}", x);
+                None
+            }
+            _ => None
         }
     }
 
