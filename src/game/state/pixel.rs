@@ -77,7 +77,7 @@ impl StateT for GameState {
                 if self.running {
 
                     if !self.player.process(x as f32, engine_data, &self.settings) {
-                        return Some(Msg::Exit);
+                        return Some(Msg::ShowGameOver);
                     }
                     self.edible_eta -= (x as f32) / 1000.0;
                     if self.edible_eta <= 0.0 {

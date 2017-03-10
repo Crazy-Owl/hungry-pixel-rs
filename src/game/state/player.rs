@@ -57,7 +57,6 @@ impl Player {
         self.offset(offset_args.0, offset_args.1);
         self.resize(-settings.deterioration_rate * x / 1000.0);
         if self.size <= 1.0 {
-            println!("Sorry, you've lost!");
             return false;
         }
         self.speed.0 += (self.direction.0 as f32) * settings.acceleration_rate * x / 1000.0;

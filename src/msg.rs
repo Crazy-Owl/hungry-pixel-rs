@@ -11,6 +11,7 @@ pub enum Msg {
     ButtonReleased(Keycode),
     ControlCommand(Control),
     PopState(usize),
+    ShowGameOver,
 }
 
 #[derive(Debug, Clone, Copy)]

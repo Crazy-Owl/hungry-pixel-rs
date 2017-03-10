@@ -17,6 +17,7 @@ use engine::context::SDL2Context;
 use self::state::StateT;
 use game::state::pixel::GameState;
 use game::state::menu::{MenuState, MenuPosition};
+use game::state::static_string::StaticState;
 use super::resources;
 
 
@@ -131,7 +132,8 @@ impl<'ttf> Engine<'ttf> {
                                 &mut self.renderer,
                                 vec![("Resume".to_string(),
                                       Msg::MenuCommand(MenuMsg::ResumeGame)),
-                                     ("Exit to main Menu".to_string(), Msg::PopState(2))],
+                                     ("Exit to main Menu".to_string(),
+                                      Msg::MenuCommand(MenuMsg::ToMainMenu))],
                                 false,
                                 MenuPosition::Centered,
                                 Some((font_large, "PAUSE".to_string())),
@@ -152,9 +154,32 @@ impl<'ttf> Engine<'ttf> {
                                 true))
     }
 
+    fn intro_screen(&mut self) -> Box<StaticState> {
+        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        Box::new(StaticState::new(font,
+                                  &mut self.renderer,
+                                  vec!["This is a game about a pixel who is very hungry."
+                                           .to_string(),
+                                       "So he eats...".to_string(),
+                                       "And eats...".to_string(),
+                                       "He eats so much that he grows into a rectangle!.."
+                                           .to_string()],
+                                  1000,
+                                  Msg::MenuCommand(MenuMsg::ToMainMenu)))
+    }
+
+    fn gameover_screen(&mut self) -> Box<StaticState> {
+        let font = self.font_cache.get("default-large").expect("Unable to open default font!");
+        Box::new(StaticState::new(font,
+                                  &mut self.renderer,
+                                  vec!["GAME OVER".to_string(), "Unfortunately.".to_string()],
+                                  1000,
+                                  Msg::MenuCommand(MenuMsg::ToMainMenu)))
+    }
+
     pub fn start_game(&mut self) {
-        let main_menu = self.main_menu();
-        self.states_stack.push(main_menu);
+        let intro_screen = self.intro_screen();
+        self.states_stack.push(intro_screen);
     }
 }
 
@@ -202,6 +227,11 @@ impl<'a> TEngine for Engine<'a> {
                 None
             }
             Some(Msg::NoOp) => None,
+            Some(Msg::ShowGameOver) => {
+                let gameover_screen = self.gameover_screen();
+                self.states_stack.push(gameover_screen);
+                None
+            }
             Some(Msg::MenuCommand(MenuMsg::ResumeGame)) => {
                 self.states_stack.pop();
                 None
@@ -264,10 +294,10 @@ impl<'a> TEngine for Engine<'a> {
             match event {
                 Quit { .. } => self.messages.push_back(Msg::Exit),
                 KeyDown { keycode: Some(x), .. } => {
-                    self.messages.push_back(Msg::ButtonPressed(x));
                     if let Some(command) = EVENTS_MAPPING.get(&x) {
                         self.messages.push_back(Msg::ControlCommand(*command))
                     }
+                    self.messages.push_back(Msg::ButtonPressed(x));
                 }
                 KeyUp { keycode: Some(x), .. } => {
                     self.messages.push_back(Msg::ButtonReleased(x));
