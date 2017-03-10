@@ -185,6 +185,8 @@ impl<'a> TEngine for Engine<'a> {
             }
             Some(Msg::MenuCommand(MenuMsg::ToMainMenu)) => {
                 let menu = self.main_menu();
+                let drain_range = ..self.states_stack.len();
+                self.states_stack.drain(drain_range);
                 self.states_stack.push(menu);
                 None
             }
