@@ -37,10 +37,10 @@ impl GameSettings {
         GameSettings {
             max_velocity: 30.0,
             deterioration_rate: 0.5,
-            edible_deterioration_rate: 0.25,
-            acceleration_rate: 50.0,
-            edibles_spawn_rate: 5.0,
-            edible_bounds: (10, 45),
+            edible_deterioration_rate: 2.0,
+            acceleration_rate: 75.0,
+            edibles_spawn_rate: 3.0,
+            edible_bounds: (15, 25),
         }
     }
 }
@@ -163,8 +163,8 @@ impl StateT for GameState {
                     }
                     self.edible_eta -= (x as f32) / 1000.0;
                     if self.edible_eta <= 0.0 {
-                        self.spawn_edible(engine_data.window_size.0 - 15,
-                                          engine_data.window_size.1 - 15);
+                        self.spawn_edible(engine_data.window_size.0 - 25,
+                                          engine_data.window_size.1 - 25);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
                     let mut collisions = Vec::<usize>::new();
