@@ -32,7 +32,7 @@ impl<'m> MenuState {
     pub fn new(f: &Font<'m, 'static>,
                r: &mut Renderer,
                choices: Vec<(String, Msg)>,
-               quit_on_esc: bool,
+               on_escape: Option<Msg>,
                position: MenuPosition,
                decoration_parameters: Option<(&Font<'m, 'static>, String)>,
                is_fullscreen: bool)
@@ -71,7 +71,7 @@ impl<'m> MenuState {
             menu_items: menu_items,
             currently_selected: 0,
             dimensions: (max_width, max_height),
-            on_escape: if quit_on_esc { Some(Msg::Exit) } else { None },
+            on_escape: on_escape,
             position: position,
             decoration: decoration_item,
             is_fullscreen: is_fullscreen,

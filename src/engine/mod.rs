@@ -120,7 +120,7 @@ impl<'ttf> Engine<'ttf> {
                                       Msg::MenuCommand(MenuMsg::ResumeGame)),
                                      ("Exit to main Menu".to_string(),
                                       Msg::MenuCommand(MenuMsg::ToMainMenu))],
-                                false,
+                                Some(Msg::MenuCommand(MenuMsg::ResumeGame)),
                                 MenuPosition::Centered,
                                 Some((font_large, "PAUSE".to_string())),
                                 false))
@@ -134,7 +134,7 @@ impl<'ttf> Engine<'ttf> {
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
                                      ("Exit Game".to_string(), Msg::Exit)],
-                                true,
+                                None,
                                 MenuPosition::Centered,
                                 Some((font_large, "HUNGRY PIXEL".to_string())),
                                 true))
