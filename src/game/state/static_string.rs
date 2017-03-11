@@ -75,7 +75,6 @@ impl StateT for StaticState {
                     None
                 }
             }
-            Msg::ButtonReleased(_) => None,
             _ => None,
         }
     }

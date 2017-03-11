@@ -2,7 +2,7 @@ pub mod state;
 pub mod data;
 pub mod context;
 
-use std::collections::{HashMap, HashSet, LinkedList};
+use std::collections::{HashMap, HashSet, VecDeque};
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
@@ -31,7 +31,7 @@ pub struct Engine<'ttf> {
     pub engine_data: EngineData,
     pub context: &'ttf SDL2Context,
     /// LinkedList for in-game messages
-    pub messages: LinkedList<Msg>,
+    pub messages: VecDeque<Msg>,
     pub event_pump: EventPump,
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
@@ -99,7 +99,7 @@ impl<'ttf> Engine<'ttf> {
         Engine {
             engine_data: engine_data,
             context: sdl_context,
-            messages: LinkedList::new(),
+            messages: VecDeque::new(),
             event_pump: event_pump,
             renderer: renderer,
             timer: timer,
@@ -212,7 +212,6 @@ impl<'a> TEngine for Engine<'a> {
                 }
                 None
             }
-            Some(Msg::NoOp) => None,
             Some(Msg::ShowGameOver) => {
                 let gameover_screen = self.gameover_screen();
                 self.states_stack.push(gameover_screen);
@@ -246,7 +245,7 @@ impl<'a> TEngine for Engine<'a> {
                                      self.engine_data.window_size.1))
                 .unwrap();
         }
-        if self.states_stack.len() > 0 {
+        if !self.states_stack.is_empty() {
             let mut last_drawable_index = self.states_stack.len();
             'fullscreen: for index in (0..self.states_stack.len()).rev() {
                 if self.states_stack[index].is_fullscreen() {

@@ -107,9 +107,8 @@ impl StateT for MenuState {
 
     fn process_message(&mut self, _: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
-            Msg::Tick(_) => None,
+            Msg::Tick(_) | Msg::ButtonReleased(_) => None,
             Msg::ButtonPressed(keycode) => self.process_button(keycode),
-            Msg::ButtonReleased(_) => None,
             msg => Some(msg),
         }
     }
@@ -132,8 +131,7 @@ impl StateT for MenuState {
                                      it.dimensions.1)))
                 .unwrap();
         }
-        let mut running_counter: usize = 0;
-        for item in &self.menu_items {
+        for (running_counter, item) in self.menu_items.iter().enumerate() {
             r.copy(&item.texture,
                       None,
                       Some(Rect::new(x as i32,
@@ -150,7 +148,6 @@ impl StateT for MenuState {
                     .unwrap();
             }
             current_y += item.dimensions.1 + 2;
-            running_counter += 1;
         }
     }
 

@@ -176,7 +176,7 @@ impl StateT for GameState {
                             collisions.push(edible_idx);
                             continue;
                         }
-                        if let Some(_) = self.player.rect.intersection(edible.rect) {
+                        if self.player.rect.intersection(edible.rect).is_some() {
                             self.player.size += edible.nutrition;
                             collisions.push(edible_idx);
                         }

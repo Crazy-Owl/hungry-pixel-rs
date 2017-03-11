@@ -8,6 +8,7 @@ rand = "*"
 lazy_static = "*"
 
 [dependencies.sdl2]
-version = "0.29"
+branch = "master"
+git = "https://github.com/AngryLawyer/rust-sdl2"
 default-features = false
 features = ["image", "ttf"]
