@@ -195,12 +195,8 @@ impl StateT for GameState {
             }
             Msg::Command(x) => self.process_game_command(x),
             // Buttons
-            Msg::ButtonPressed(x) => {
-                self.process_button_press(x)
-            }
-            Msg::ButtonReleased(x) => {
-                self.process_button_release(x)
-            }
+            Msg::ButtonPressed(x) => self.process_button_press(x),
+            Msg::ButtonReleased(x) => self.process_button_release(x),
             Msg::NoOp => None,
             msg => Some(msg),
         }
