@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use sdl2::render::Renderer;
 use sdl2::pixels::Color::*;
 use sdl2::keyboard::Keycode;
@@ -5,10 +6,22 @@ use sdl2::keyboard::Keycode;
 use engine::state::StateT;
 use rand;
 
-use msg::{Msg, Control, MenuMsg};
+use msg::{Msg, Movement, GameCommand, MenuMsg};
 use engine::data::EngineData;
 use super::player::Player;
 use super::edible::Edible;
+
+lazy_static! {
+    pub static ref MOVEMENT_MAPPING: HashMap<Keycode, Movement> = {
+        let mut hm = HashMap::new();
+        // TODO: do something with these invocations, probably a macro use?
+        hm.insert(Keycode::Up, Movement::Up);
+        hm.insert(Keycode::Down, Movement::Down);
+        hm.insert(Keycode::Left, Movement::Left);
+        hm.insert(Keycode::Right, Movement::Right);
+        hm
+    };
+}
 
 pub struct GameSettings {
     pub max_velocity: f32,
@@ -62,6 +75,76 @@ impl GameState {
                                          self.settings.edible_bounds.0))) as
                                       f32));
     }
+
+    pub fn process_game_command(&mut self, c: GameCommand) -> Option<Msg> {
+        match c {
+            GameCommand::StartMovement(direction) => {
+                match direction {
+                    Movement::Up => {
+                        self.player.direction.1 = -1;
+                    }
+                    Movement::Down => {
+                        self.player.direction.1 = 1;
+                    }
+                    Movement::Left => {
+                        self.player.direction.0 = -1;
+                    }
+                    Movement::Right => {
+                        self.player.direction.0 = 1;
+                    }
+                }
+                None
+            }
+            GameCommand::StopMovement(direction) => {
+                match direction {
+                    Movement::Up | Movement::Down => self.player.direction.1 = 0,
+                    Movement::Left | Movement::Right => self.player.direction.0 = 0,
+                }
+                None
+            }
+            GameCommand::Pause => {
+                self.running = false;
+                None
+            }
+            GameCommand::Resume => {
+                self.running = true;
+                None
+            }
+            GameCommand::Menu => {
+                self.running = false;
+                Some(Msg::MenuCommand(MenuMsg::ShowGameMenu))
+            }
+        }
+    }
+
+    pub fn process_button_press(&mut self, k: Keycode) -> Option<Msg> {
+        if let Some(direction) = MOVEMENT_MAPPING.get(&k) {
+            self.process_game_command(GameCommand::StartMovement(*direction))
+        } else {
+            match k {
+                Keycode::Escape => self.process_game_command(GameCommand::Menu),
+                Keycode::P | Keycode::Pause => {
+                    let is_running = self.running;
+                    self.process_game_command({
+                        if is_running {
+                            GameCommand::Pause
+                        } else {
+                            GameCommand::Resume
+                        }
+                    })
+                }
+                _ => None,
+            }
+        }
+    }
+
+    pub fn process_button_release(&mut self, k: Keycode) -> Option<Msg> {
+        if let Some(direction) = MOVEMENT_MAPPING.get(&k) {
+            self.process_game_command(GameCommand::StopMovement(*direction))
+        } else {
+            None
+        }
+    }
 }
 
 impl StateT for GameState {
@@ -103,51 +186,18 @@ impl StateT for GameState {
                 }
                 Some(Msg::Tick(x))
             }
-            Msg::ControlCommand(Control::Pause) => {
-                self.running = !self.running;
-                None
-            }
-            Msg::ControlCommand(Control::Escape) => {
-                self.running = false;
-                Some(Msg::MenuCommand(MenuMsg::ShowGameMenu))
-            }
             Msg::MenuCommand(MenuMsg::ResumeGame) => {
                 self.running = true;
                 Some(Msg::MenuCommand(MenuMsg::ResumeGame))
             }
-            Msg::ButtonPressed(Keycode::Up) => {
-                self.player.direction.1 = -1i8;
-                None
+            Msg::Command(x) => self.process_game_command(x),
+            // Buttons
+            Msg::ButtonPressed(x) => {
+                self.process_button_press(x)
             }
-            Msg::ButtonPressed(Keycode::Down) => {
-                self.player.direction.1 = 1i8;
-                None
+            Msg::ButtonReleased(x) => {
+                self.process_button_release(x)
             }
-            Msg::ButtonPressed(Keycode::Left) => {
-                self.player.direction.0 = -1i8;
-                None
-            }
-            Msg::ButtonPressed(Keycode::Right) => {
-                self.player.direction.0 = 1i8;
-                None
-            }
-            Msg::ButtonReleased(Keycode::Up) => {
-                self.player.direction.1 = 0;
-                None
-            }
-            Msg::ButtonReleased(Keycode::Down) => {
-                self.player.direction.1 = 0;
-                None
-            }
-            Msg::ButtonReleased(Keycode::Left) => {
-                self.player.direction.0 = 0;
-                None
-            }
-            Msg::ButtonReleased(Keycode::Right) => {
-                self.player.direction.0 = 0;
-                None
-            }
-            Msg::ControlCommand(_) => None,
             Msg::NoOp => None,
             msg => Some(msg),
         }

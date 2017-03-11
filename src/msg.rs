@@ -9,7 +9,7 @@ pub enum Msg {
     MenuCommand(MenuMsg),
     ButtonPressed(Keycode),
     ButtonReleased(Keycode),
-    ControlCommand(Control),
+    Command(GameCommand),
     PopState(usize),
     ShowGameOver,
 }
@@ -22,13 +22,18 @@ pub enum MenuMsg {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Control {
+pub enum GameCommand {
+    StartMovement(Movement),
+    StopMovement(Movement),
+    Pause,
+    Resume,
+    Menu,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Movement {
     Up,
     Down,
     Left,
     Right,
-    Escape,
-    Enter,
-    Pause,
-    Space,
 }

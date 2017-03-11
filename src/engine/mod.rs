@@ -12,7 +12,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 
 use self::data::EngineData;
-use super::msg::{Msg, Control, MenuMsg};
+use super::msg::{Msg, MenuMsg};
 use engine::context::SDL2Context;
 use self::state::StateT;
 use game::state::pixel::GameState;
@@ -23,20 +23,6 @@ use super::resources;
 
 const FPS_LOCK: u32 = 1000 / 64;
 
-lazy_static! {
-    pub static ref EVENTS_MAPPING: HashMap<Keycode, Control> = {
-        let mut hm = HashMap::new();
-        // TODO: do something with these invocations, probably a macro use?
-        hm.insert(Keycode::Up, Control::Up);
-        hm.insert(Keycode::Down, Control::Down);
-        hm.insert(Keycode::Left, Control::Left);
-        hm.insert(Keycode::Right, Control::Right);
-        hm.insert(Keycode::Escape, Control::Escape);
-        hm.insert(Keycode::Return, Control::Enter);
-        hm.insert(Keycode::P, Control::Pause);
-        hm
-    };
-}
 /// Game Engine
 
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
@@ -241,10 +227,10 @@ impl<'a> TEngine for Engine<'a> {
                 None
             }
             Some(x) => {
-                println!("Unprocessed message discarded: {:?}", x);
+                self.messages.push_back(x);
                 None
             }
-            _ => None
+            _ => None,
         }
     }
 
@@ -298,9 +284,6 @@ impl<'a> TEngine for Engine<'a> {
             match event {
                 Quit { .. } => self.messages.push_back(Msg::Exit),
                 KeyDown { keycode: Some(x), .. } => {
-                    if let Some(command) = EVENTS_MAPPING.get(&x) {
-                        self.messages.push_back(Msg::ControlCommand(*command))
-                    }
                     self.messages.push_back(Msg::ButtonPressed(x));
                 }
                 KeyUp { keycode: Some(x), .. } => {

@@ -1,8 +1,9 @@
 use sdl2::render::{Texture, Renderer};
+use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use sdl2::ttf::Font;
 use sdl2::pixels::Color::*;
-use msg::{Msg, Control};
+use msg::Msg;
 use engine::data::EngineData;
 use engine::state::StateT;
 
@@ -76,6 +77,28 @@ impl<'m> MenuState {
             is_fullscreen: is_fullscreen,
         }
     }
+
+    pub fn process_button(&mut self, k: Keycode) -> Option<Msg> {
+        match k {
+            Keycode::Up => {
+                self.currently_selected -= 1;
+                if self.currently_selected < 0 {
+                    self.currently_selected = self.menu_items.len() as i8 - 1;
+                }
+                None
+            }
+            Keycode::Down => {
+                self.currently_selected += 1;
+                if self.currently_selected > self.menu_items.len() as i8 - 1 {
+                    self.currently_selected = 0;
+                }
+                None
+            }
+            Keycode::Return => Some(self.menu_items[self.currently_selected as usize].msg),
+            Keycode::Escape => self.on_escape,
+            _ => None,
+        }
+    }
 }
 
 impl StateT for MenuState {
@@ -85,24 +108,8 @@ impl StateT for MenuState {
     fn process_message(&mut self, _: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
             Msg::Tick(_) => None,
-            Msg::ControlCommand(Control::Up) => {
-                self.currently_selected -= 1;
-                if self.currently_selected < 0 {
-                    self.currently_selected = self.menu_items.len() as i8 - 1;
-                }
-                None
-            }
-            Msg::ControlCommand(Control::Down) => {
-                self.currently_selected += 1;
-                if self.currently_selected > self.menu_items.len() as i8 - 1 {
-                    self.currently_selected = 0;
-                }
-                None
-            }
-            Msg::ControlCommand(Control::Enter) => {
-                Some(self.menu_items[self.currently_selected as usize].msg)
-            }
-            Msg::ControlCommand(Control::Escape) => self.on_escape,
+            Msg::ButtonPressed(keycode) => self.process_button(keycode),
+            Msg::ButtonReleased(_) => None,
             msg => Some(msg),
         }
     }
