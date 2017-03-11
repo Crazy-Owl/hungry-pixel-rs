@@ -148,7 +148,7 @@ impl<'ttf> Engine<'ttf> {
                                            .to_string(),
                                        "So he eats...".to_string(),
                                        "And eats...".to_string(),
-                                       "He eats so much that he grows into a rectangle!.."
+                                       "He eats so much that he grows into a square!.."
                                            .to_string()],
                                   1000,
                                   Msg::MenuCommand(MenuMsg::ToMainMenu)))
