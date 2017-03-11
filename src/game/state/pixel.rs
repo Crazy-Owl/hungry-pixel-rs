@@ -29,7 +29,7 @@ pub struct GameSettings {
     pub edible_deterioration_rate: f32,
     pub acceleration_rate: f32,
     pub edibles_spawn_rate: f32,
-    pub edible_bounds: (u32, u32),
+    pub edible_bounds: (u8, u8),
 }
 
 impl GameSettings {
@@ -66,14 +66,13 @@ impl GameState {
     }
 
     pub fn spawn_edible(&mut self, max_x: u32, max_y: u32) {
-        let coords = rand::random::<(u32, u32, u32)>();
-        self.edibles.push(Edible::new((coords.0 % max_x) as i32,
-                                      (coords.1 % max_y) as i32,
-                                      (self.settings.edible_bounds.0 +
-                                       (coords.2 %
-                                        (self.settings.edible_bounds.1 -
-                                         self.settings.edible_bounds.0))) as
-                                      f32));
+        let coords = rand::random::<(u32, u32)>();
+        let size = rand::random::<u8>() %
+                   (self.settings.edible_bounds.1 - self.settings.edible_bounds.0);
+        let x = (coords.0 % max_x) as i32;
+        let y = (coords.1 % max_y) as i32;
+        let edible = Edible::new(x, y, (self.settings.edible_bounds.0 + size) as f32);
+        self.edibles.push(edible);
     }
 
     pub fn process_game_command(&mut self, c: GameCommand) -> Option<Msg> {
@@ -173,6 +172,10 @@ impl StateT for GameState {
                         let edible = &mut self.edibles[edible_idx];
                         edible.deteriorate(self.settings.edible_deterioration_rate * (x as f32) /
                                            1000.0);
+                        if edible.nutrition <= 0.0 {
+                            collisions.push(edible_idx);
+                            continue;
+                        }
                         if let Some(_) = self.player.rect.intersection(edible.rect) {
                             self.player.size += edible.nutrition;
                             collisions.push(edible_idx);

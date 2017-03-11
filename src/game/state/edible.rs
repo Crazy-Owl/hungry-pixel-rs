@@ -14,7 +14,11 @@ impl Edible {
     }
 
     pub fn deteriorate(&mut self, x: f32) {
-        self.nutrition -= x;
+        if self.nutrition < x {
+            self.nutrition = 0.0;
+        } else {
+            self.nutrition -= x;
+        }
         self.rect.resize(self.nutrition as u32, self.nutrition as u32);
     }
 }
