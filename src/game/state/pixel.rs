@@ -167,24 +167,28 @@ impl StateT for GameState {
                                           engine_data.window_size.1 - 25);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
-                    let mut collisions = Vec::<usize>::new();
+                    let mut to_remove = Vec::<usize>::new();
                     for edible_idx in 0..self.edibles.len() {
                         let edible = &mut self.edibles[edible_idx];
                         edible.deteriorate(self.settings.edible_deterioration_rate * (x as f32) /
                                            1000.0);
                         if edible.nutrition <= 0.0 {
-                            collisions.push(edible_idx);
+                            to_remove.push(edible_idx);
                             continue;
                         }
                         if self.player.rect.intersection(edible.rect).is_some() {
                             self.player.size += edible.nutrition;
-                            collisions.push(edible_idx);
+                            to_remove.push(edible_idx);
                         }
                     }
-                    collisions.sort();
-                    collisions.reverse();
-                    for collided in collisions {
-                        self.edibles.swap_remove(collided);
+                    to_remove.sort();
+                    to_remove.reverse();
+                    for removing_idx in to_remove {
+                        self.edibles.swap_remove(removing_idx);
+                    }
+
+                    if self.player.size >= (engine_data.window_size.1 as f32 / 2.0) {
+                        return Some(Msg::ShowWinScreen);
                     }
                 }
                 Some(Msg::Tick(x))

@@ -133,6 +133,7 @@ impl<'ttf> Engine<'ttf> {
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
+                                     ("Credits".to_string(), Msg::ShowCredits),
                                      ("Exit Game".to_string(), Msg::Exit)],
                                 None,
                                 MenuPosition::Centered,
@@ -160,6 +161,26 @@ impl<'ttf> Engine<'ttf> {
                                   &mut self.renderer,
                                   vec!["GAME OVER".to_string(), "Unfortunately.".to_string()],
                                   1000,
+                                  Msg::MenuCommand(MenuMsg::ToMainMenu)))
+    }
+
+    fn winning_screen(&mut self) -> Box<StaticState> {
+        let font = self.font_cache.get("default-large").expect("Unable to open default font!");
+        Box::new(StaticState::new(font,
+                                  &mut self.renderer,
+                                  vec!["Congratulations!".to_string(), "You've won!".to_string()],
+                                  1000,
+                                  Msg::ShowCredits))
+    }
+
+    fn credits(&mut self) -> Box<StaticState> {
+        let font = self.font_cache.get("default-large").expect("Unable to open default font!");
+        Box::new(StaticState::new(font,
+                                  &mut self.renderer,
+                                  vec!["Author:".to_string(),
+                                       "Crazy-Owl".to_string(),
+                                       "http://GitHub.com/Crazy-Owl".to_string()],
+                                  1500,
                                   Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
 
@@ -213,6 +234,8 @@ impl<'a> TEngine for Engine<'a> {
                 None
             }
             Some(Msg::ShowGameOver) => {
+                let drain_range = ..self.states_stack.len();
+                self.states_stack.drain(drain_range);
                 let gameover_screen = self.gameover_screen();
                 self.states_stack.push(gameover_screen);
                 None
@@ -223,6 +246,20 @@ impl<'a> TEngine for Engine<'a> {
             }
             Some(Msg::Exit) => {
                 self.engine_data.running = false;
+                None
+            }
+            Some(Msg::ShowWinScreen) => {
+                let drain_range = ..self.states_stack.len();
+                self.states_stack.drain(drain_range);
+                let win_screen = self.winning_screen();
+                self.states_stack.push(win_screen);
+                None
+            }
+            Some(Msg::ShowCredits) => {
+                let drain_range = ..self.states_stack.len();
+                self.states_stack.drain(drain_range);
+                let credits_screen = self.credits();
+                self.states_stack.push(credits_screen);
                 None
             }
             Some(x) => {

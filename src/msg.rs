@@ -12,6 +12,8 @@ pub enum Msg {
     Command(GameCommand),
     PopState(usize),
     ShowGameOver,
+    ShowWinScreen,
+    ShowCredits,
 }
 
 #[derive(Debug, Clone, Copy)]
