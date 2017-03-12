@@ -1,5 +1,4 @@
 TODO:
-* add menustate with FnOnce-based actions
 * remapping keys from in-game
-* try cross-compiling
 * lazy_static Cell with controls (related to remapping keys)
+* make size related to acceleration
