@@ -1,4 +1,2 @@
 TODO:
-* remapping keys from in-game
-* lazy_static Cell with controls (related to remapping keys)
 * make size related to acceleration
