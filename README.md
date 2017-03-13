@@ -16,6 +16,8 @@ First of all, ensure that you have dev versions of `sdl2`, `sdl2-image` and `sdl
 
 Next, clone the repository and run `cargo build --release` in it. You will need to move `target/release/hungry-pixel-rs` executable along with `resources` dir somewhere and then you'll be able to run it. As an alternative, you can use `cargo run` command to just run the dev build.
 
+Linux users can run `sh scripts/release.sh` from repository root to create a `.tar.gz` archive with everything needed to play (including a shell-script `run.sh`).
+
 ## Architectural overview
 
 Game architecture is based on a notion of "States". A `State` is an entity that knows how to respond to `Messages` and how to `render` itself on screen. States are gathered into a stack of states that resides in the `Engine` entity. `Engine` also has a queue of `Messages`.
