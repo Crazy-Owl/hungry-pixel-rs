@@ -99,7 +99,7 @@ impl StateT for OptionsState {
             r.copy(&self.message,
                       None,
                       Some(Rect::new((ed.window_size.0 / 2 - message_query.width / 2) as i32,
-                                     (ed.window_size.1 / 2 + self.menu.dimensions.1 / 2 +
+                                     (ed.window_size.1 / 2 + self.menu.get_dimensions().1 / 2 +
                                       message_query.height * 2) as
                                      i32,
                                      message_query.width,

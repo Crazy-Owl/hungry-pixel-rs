@@ -6,6 +6,7 @@ use sdl2::pixels::Color::*;
 use msg::Msg;
 use engine::data::EngineData;
 use engine::state::StateT;
+use std::cmp;
 
 pub enum MenuPosition {
     Centered,
@@ -21,7 +22,7 @@ struct MenuItem {
 pub struct MenuState {
     menu_items: Vec<MenuItem>,
     currently_selected: i8,
-    pub dimensions: (u32, u32),
+    dimensions: (u32, u32),
     on_escape: Option<Msg>,
     position: MenuPosition,
     decoration: Option<MenuItem>,
@@ -97,6 +98,16 @@ impl<'m> MenuState {
             Keycode::Return => Some(self.menu_items[self.currently_selected as usize].msg),
             Keycode::Escape => self.on_escape,
             _ => None,
+        }
+    }
+
+    pub fn get_dimensions(&self) -> (u32, u32) {
+        if let Some(ref decoration) = self.decoration {
+            let x = cmp::max(self.dimensions.0, decoration.dimensions.0);
+            let y = self.dimensions.1 + decoration.dimensions.1;
+            (x, y)
+        } else {
+            (self.dimensions.0, self.dimensions.1)
         }
     }
 }
