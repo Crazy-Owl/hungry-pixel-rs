@@ -21,7 +21,7 @@ struct MenuItem {
 pub struct MenuState {
     menu_items: Vec<MenuItem>,
     currently_selected: i8,
-    dimensions: (u32, u32),
+    pub dimensions: (u32, u32),
     on_escape: Option<Msg>,
     position: MenuPosition,
     decoration: Option<MenuItem>,
@@ -107,7 +107,8 @@ impl StateT for MenuState {
 
     fn process_message(&mut self, _: &mut EngineData, msg: Msg) -> Option<Msg> {
         match msg {
-            Msg::Tick(_) | Msg::ButtonReleased(_) => None,
+            Msg::Tick(_) |
+            Msg::ButtonReleased(_) => None,
             Msg::ButtonPressed(keycode) => self.process_button(keycode),
             msg => Some(msg),
         }

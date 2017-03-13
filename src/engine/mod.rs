@@ -18,6 +18,7 @@ use self::state::StateT;
 use game::state::pixel::GameState;
 use game::state::menu::{MenuState, MenuPosition};
 use game::state::static_string::StaticState;
+use game::state::options::OptionsState;
 use super::resources;
 
 
@@ -133,6 +134,7 @@ impl<'ttf> Engine<'ttf> {
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
+                                     ("Controls".to_string(), Msg::ShowOptions),
                                      ("Credits".to_string(), Msg::ShowCredits),
                                      ("Exit Game".to_string(), Msg::Exit)],
                                 None,
@@ -182,6 +184,11 @@ impl<'ttf> Engine<'ttf> {
                                        "http://GitHub.com/Crazy-Owl".to_string()],
                                   1500,
                                   Msg::MenuCommand(MenuMsg::ToMainMenu)))
+    }
+
+    fn options(&mut self) -> Box<OptionsState> {
+        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        Box::new(OptionsState::new(font, &mut self.renderer))
     }
 
     pub fn start_game(&mut self) {
@@ -238,6 +245,11 @@ impl<'a> TEngine for Engine<'a> {
                 self.states_stack.drain(drain_range);
                 let gameover_screen = self.gameover_screen();
                 self.states_stack.push(gameover_screen);
+                None
+            }
+            Some(Msg::ShowOptions) => {
+                let options = self.options();
+                self.states_stack.push(options);
                 None
             }
             Some(Msg::MenuCommand(MenuMsg::ResumeGame)) => {

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Mutex;
 use sdl2::render::Renderer;
 use sdl2::pixels::Color::*;
 use sdl2::keyboard::Keycode;
@@ -12,14 +13,14 @@ use super::player::Player;
 use super::edible::Edible;
 
 lazy_static! {
-    pub static ref MOVEMENT_MAPPING: HashMap<Keycode, Movement> = {
+    pub static ref MOVEMENT_MAPPING: Mutex<HashMap<Keycode, Movement>> = {
         let mut hm = HashMap::new();
         // TODO: do something with these invocations, probably a macro use?
         hm.insert(Keycode::Up, Movement::Up);
         hm.insert(Keycode::Down, Movement::Down);
         hm.insert(Keycode::Left, Movement::Left);
         hm.insert(Keycode::Right, Movement::Right);
-        hm
+        Mutex::new(hm)
     };
 }
 
@@ -117,7 +118,7 @@ impl GameState {
     }
 
     pub fn process_button_press(&mut self, k: Keycode) -> Option<Msg> {
-        if let Some(direction) = MOVEMENT_MAPPING.get(&k) {
+        if let Some(direction) = MOVEMENT_MAPPING.lock().unwrap().get(&k) {
             self.process_game_command(GameCommand::StartMovement(*direction))
         } else {
             match k {
@@ -138,7 +139,7 @@ impl GameState {
     }
 
     pub fn process_button_release(&mut self, k: Keycode) -> Option<Msg> {
-        if let Some(direction) = MOVEMENT_MAPPING.get(&k) {
+        if let Some(direction) = MOVEMENT_MAPPING.lock().unwrap().get(&k) {
             self.process_game_command(GameCommand::StopMovement(*direction))
         } else {
             None

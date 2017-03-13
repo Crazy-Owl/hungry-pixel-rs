@@ -14,6 +14,9 @@ pub enum Msg {
     ShowGameOver,
     ShowWinScreen,
     ShowCredits,
+    ShowOptions,
+    OptionsSelect(Movement),
+    OptionsSet(Keycode),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -32,7 +35,7 @@ pub enum GameCommand {
     Menu,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Movement {
     Up,
     Down,
