@@ -37,9 +37,9 @@ impl GameSettings {
     fn new() -> GameSettings {
         GameSettings {
             max_velocity: 30.0,
-            deterioration_rate: 0.5,
+            deterioration_rate: 0.75,
             edible_deterioration_rate: 2.0,
-            acceleration_rate: 75.0,
+            acceleration_rate: 100.0,
             edibles_spawn_rate: 3.0,
             edible_bounds: (15, 25),
         }
