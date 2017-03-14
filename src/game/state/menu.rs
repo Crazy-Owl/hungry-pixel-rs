@@ -29,13 +29,13 @@ pub struct MenuState {
     is_fullscreen: bool,
 }
 
-impl<'m> MenuState {
-    pub fn new(f: &Font<'m, 'static>,
+impl<'m, 'b> MenuState {
+    pub fn new(f: &Font<'m, 'b>,
                r: &mut Renderer,
                choices: Vec<(String, Msg)>,
                on_escape: Option<Msg>,
                position: MenuPosition,
-               decoration_parameters: Option<(&Font<'m, 'static>, String)>,
+               decoration_parameters: Option<(&Font<'m, 'b>, String)>,
                is_fullscreen: bool)
                -> MenuState {
         let mut menu_items = Vec::new();

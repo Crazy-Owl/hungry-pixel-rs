@@ -17,7 +17,7 @@ pub struct OptionsState {
 }
 
 impl OptionsState {
-    pub fn new<'m>(f: &Font<'m, 'static>, r: &mut Renderer) -> OptionsState {
+    pub fn new<'m, 'b>(f: &Font<'m, 'b>, r: &mut Renderer) -> OptionsState {
         // TODO: save texture with text here
         let choices = vec![("Up".to_string(), Msg::OptionsSelect(Movement::Up)),
                            ("Down".to_string(), Msg::OptionsSelect(Movement::Down)),

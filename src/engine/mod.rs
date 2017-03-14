@@ -1,12 +1,13 @@
 pub mod state;
 pub mod data;
 pub mod context;
+pub mod font;
 
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashSet, VecDeque};
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
 use sdl2::render::Renderer;
 use sdl2::video::Window;
-use sdl2::ttf::Font;
+use sdl2::ttf::Sdl2TtfContext;
 use sdl2::pixels::Color::RGB;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
@@ -19,6 +20,7 @@ use game::state::pixel::GameState;
 use game::state::menu::{MenuState, MenuPosition};
 use game::state::static_string::StaticState;
 use game::state::options::OptionsState;
+use self::font::FontCache;
 use super::resources;
 
 
@@ -30,14 +32,14 @@ const FPS_LOCK: u32 = 1000 / 64;
 /// (keyboard and mouse) etc.
 pub struct Engine<'ttf> {
     pub engine_data: EngineData,
-    pub context: &'ttf SDL2Context,
+    pub context: SDL2Context,
     /// LinkedList for in-game messages
     pub messages: VecDeque<Msg>,
     pub event_pump: EventPump,
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
-    pub font_cache: HashMap<String, Font<'ttf, 'static>>,
+    pub font_cache: font::FontCache<'ttf, 'static>,
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
     pub states_stack: Vec<Box<StateT<EngineData = EngineData, Message = Msg>>>,
@@ -63,20 +65,18 @@ pub trait TEngine {
 }
 
 impl<'ttf> Engine<'ttf> {
-    pub fn new(sdl_context: &'ttf mut SDL2Context) -> Engine<'ttf> {
+    pub fn new(sdl_context: SDL2Context, ttf_context: &'ttf mut Sdl2TtfContext) -> Engine<'ttf> {
         let engine_data = EngineData::new();
         let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
         let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
-        let mut font_cache: HashMap<String, Font<'ttf, 'static>> = HashMap::new();
-        let font = sdl_context.ttf
-            .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 14)
-            .unwrap();
-        font_cache.insert("default".to_string(), font);
-        let font = sdl_context.ttf
-            .load_font(resources::get_resource_path("PressStart2P-Regular.ttf"), 24)
-            .unwrap();
-        font_cache.insert("default-large".to_string(), font);
+        let mut font_cache = FontCache::new(ttf_context);
+        font_cache.load_font("default",
+                             resources::get_resource_path("PressStart2P-Regular.ttf"),
+                             14);
+        font_cache.load_font("default-large",
+                             resources::get_resource_path("PressStart2P-Regular.ttf"),
+                             24);
         let window: Window = video_subsystem.window("SDL2 game",
                     engine_data.window_size.0,
                     engine_data.window_size.1)
@@ -112,9 +112,9 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn in_game_menu(&mut self) -> Box<MenuState> {
-        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
         let font_large =
-            self.font_cache.get("default-large").expect("Unable to open default font!");
+            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("Resume".to_string(),
@@ -128,9 +128,9 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
-        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
         let font_large =
-            self.font_cache.get("default-large").expect("Unable to open default font!");
+            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
         Box::new(MenuState::new(font,
                                 &mut self.renderer,
                                 vec![("New Game".to_string(), Msg::StartGame),
@@ -144,7 +144,7 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn intro_screen(&mut self) -> Box<StaticState> {
-        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
         Box::new(StaticState::new(font,
                                   &mut self.renderer,
                                   vec!["This is a game about a pixel who is very hungry."
@@ -158,7 +158,8 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn gameover_screen(&mut self) -> Box<StaticState> {
-        let font = self.font_cache.get("default-large").expect("Unable to open default font!");
+        let font =
+            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
         Box::new(StaticState::new(font,
                                   &mut self.renderer,
                                   vec!["GAME OVER".to_string(), "Unfortunately.".to_string()],
@@ -167,7 +168,8 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn winning_screen(&mut self) -> Box<StaticState> {
-        let font = self.font_cache.get("default-large").expect("Unable to open default font!");
+        let font =
+            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
         Box::new(StaticState::new(font,
                                   &mut self.renderer,
                                   vec!["Congratulations!".to_string(), "You've won!".to_string()],
@@ -176,7 +178,8 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn credits(&mut self) -> Box<StaticState> {
-        let font = self.font_cache.get("default-large").expect("Unable to open default font!");
+        let font =
+            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
         Box::new(StaticState::new(font,
                                   &mut self.renderer,
                                   vec!["Author:".to_string(),
@@ -187,7 +190,7 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn options(&mut self) -> Box<OptionsState> {
-        let font = self.font_cache.get("default").expect("Unable to open default font!");
+        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
         Box::new(OptionsState::new(font, &mut self.renderer))
     }
 
@@ -197,7 +200,7 @@ impl<'ttf> Engine<'ttf> {
     }
 }
 
-impl<'a> TEngine for Engine<'a> {
+impl<'ttf> TEngine for Engine<'ttf> {
     type Message = Msg;
     type EngineData = EngineData;
 

@@ -20,7 +20,7 @@ pub struct StaticState {
 }
 
 impl StaticState {
-    pub fn new<'a>(f: &Font<'a, 'static>,
+    pub fn new<'a, 'b>(f: &Font<'a, 'b>,
                    r: &mut Renderer,
                    strings: Vec<String>,
                    pause: u32,
