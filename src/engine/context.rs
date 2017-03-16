@@ -11,8 +11,6 @@ pub struct SDL2Context {
 impl SDL2Context {
     pub fn new() -> SDL2Context {
         let sdl_context: Sdl = sdl2::init().expect("Could not initialize SDL!");
-        SDL2Context {
-            sdl2: sdl_context,
-        }
+        SDL2Context { sdl2: sdl_context }
     }
 }

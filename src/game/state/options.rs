@@ -7,7 +7,6 @@ use engine::font::FontCache;
 
 use sdl2::render::{Renderer, Texture};
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color::*;
 use sdl2::rect::Rect;
 
 pub struct OptionsState {
@@ -18,18 +17,15 @@ pub struct OptionsState {
 
 impl OptionsState {
     pub fn new<'m, 'b>(font_cache: &FontCache, r: &mut Renderer) -> OptionsState {
-        // TODO: save texture with text here
-        let choices = vec![("Up".to_string(), Msg::OptionsSelect(Movement::Up)),
-                           ("Down".to_string(), Msg::OptionsSelect(Movement::Down)),
-                           ("Left".to_string(), Msg::OptionsSelect(Movement::Left)),
-                           ("Right".to_string(), Msg::OptionsSelect(Movement::Right))];
-
-        let choices: Vec<(Texture, Msg)> = vec![
-            (font_cache.render_texture(r, "default", "Up").unwrap(), Msg::OptionsSelect(Movement::Up)),
-            (font_cache.render_texture(r, "default", "Down").unwrap(), Msg::OptionsSelect(Movement::Down)),
-            (font_cache.render_texture(r, "default", "Left").unwrap(), Msg::OptionsSelect(Movement::Left)),
-            (font_cache.render_texture(r, "default", "Right").unwrap(), Msg::OptionsSelect(Movement::Right)),
-        ];
+        let choices: Vec<(Texture, Msg)> =
+            vec![(font_cache.render_texture(r, "default", "Up").unwrap(),
+                  Msg::OptionsSelect(Movement::Up)),
+                 (font_cache.render_texture(r, "default", "Down").unwrap(),
+                  Msg::OptionsSelect(Movement::Down)),
+                 (font_cache.render_texture(r, "default", "Left").unwrap(),
+                  Msg::OptionsSelect(Movement::Left)),
+                 (font_cache.render_texture(r, "default", "Right").unwrap(),
+                  Msg::OptionsSelect(Movement::Right))];
 
         let decoration_texture = font_cache.render_texture(r, "default-large", "Options").unwrap();
         let menu = MenuState::new(r,

@@ -18,11 +18,7 @@ pub struct StaticState {
 }
 
 impl StaticState {
-    pub fn new<'a, 'b>(r: &mut Renderer,
-                       strings: Vec<Texture>,
-                       pause: u32,
-                       next: Msg)
-                       -> StaticState {
+    pub fn new<'a, 'b>(strings: Vec<Texture>, pause: u32, next: Msg) -> StaticState {
         let mut lines: Vec<ScreenLine> = Vec::with_capacity(strings.len());
         let mut max_width: u32 = 0;
         let mut max_height: u32 = 0;

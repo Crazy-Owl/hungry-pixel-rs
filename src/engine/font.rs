@@ -9,9 +9,9 @@ use sdl2::surface::Surface;
 
 const GLYPH_SET: &'static str = "/\\| _-+=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!.,'\":;абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
 pub struct FontAtlas {
-    pub texture: Texture,
+    texture: Texture,
     glyphs: HashMap<char, Rect>,
-    metrics: HashMap<char, GlyphMetrics>,
+    pub metrics: HashMap<char, GlyphMetrics>,
     max_size: (u32, u32),
 }
 
@@ -104,32 +104,40 @@ impl FontCache {
         let key_str = key.into();
         let font = self.cache.get(key_str).ok_or("Font not found".to_string())?;
 
-        r.render_target().unwrap().create_and_set(PixelFormatEnum::RGBA8888,
-                                                  text.len() as u32 *
-                                                  font.max_size.0,
-                                                  font.max_size.1).unwrap();
+        r.render_target()
+            .unwrap()
+            .create_and_set(PixelFormatEnum::RGBA8888,
+                            text.len() as u32 * font.max_size.0,
+                            font.max_size.1)
+            .unwrap();
 
         let mut current_x: i32 = 0;
 
         for character in text.chars() {
             r.copy(&font.texture,
-                   font.glyphs.get(&character).map(|ref x| *x.clone()),
-                   Some(Rect::new(current_x, 0, font.max_size.0, font.max_size.1)))?;
+                      font.glyphs.get(&character).map(|ref x| *x.clone()),
+                      Some(Rect::new(current_x, 0, font.max_size.0, font.max_size.1)))?;
             current_x += font.max_size.0 as i32;
         }
 
         r.render_target().unwrap().reset().unwrap().ok_or("Can not render texture!".to_string())
     }
 
-    pub fn render_text<'a, T: Into<&'a str>>(&self, r: &mut Renderer, key: T, text: &str, x: i32, y: i32) -> Result<(), String> {
+    pub fn render_text<'a, T: Into<&'a str>>(&self,
+                                             r: &mut Renderer,
+                                             key: T,
+                                             text: &str,
+                                             x: i32,
+                                             y: i32)
+                                             -> Result<(), String> {
         let font = self.cache.get(key.into()).ok_or("Font not found".to_string())?;
 
         let mut current_x: i32 = x;
 
         for character in text.chars() {
             r.copy(&font.texture,
-                   font.glyphs.get(&character).map(|ref x| *x.clone()),
-                   Some(Rect::new(current_x, y, font.max_size.0, font.max_size.1)))?;
+                      font.glyphs.get(&character).map(|ref x| *x.clone()),
+                      Some(Rect::new(current_x, y, font.max_size.0, font.max_size.1)))?;
             current_x += font.max_size.0 as i32;
         }
 
