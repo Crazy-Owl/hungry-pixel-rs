@@ -5,7 +5,7 @@ pub mod font;
 
 use std::collections::{HashSet, VecDeque};
 use sdl2::{EventPump, VideoSubsystem, TimerSubsystem};
-use sdl2::render::Renderer;
+use sdl2::render::{Renderer, Texture};
 use sdl2::video::Window;
 use sdl2::ttf::Sdl2TtfContext;
 use sdl2::pixels::Color::RGB;
@@ -30,7 +30,7 @@ const FPS_LOCK: u32 = 1000 / 64;
 
 /// Holds all the data relevant to establishing the main game loop, to process SDL events
 /// (keyboard and mouse) etc.
-pub struct Engine<'ttf> {
+pub struct Engine {
     pub engine_data: EngineData,
     pub context: SDL2Context,
     /// LinkedList for in-game messages
@@ -39,7 +39,7 @@ pub struct Engine<'ttf> {
     /// Renderer with static runtime since it corresponds to the window
     pub renderer: Renderer<'static>,
     pub timer: TimerSubsystem,
-    pub font_cache: font::FontCache<'ttf, 'static>,
+    pub font_cache: font::FontCache,
     /// last update timestamp in SDL2 internal milliseconds
     pub last_update: u32,
     pub states_stack: Vec<Box<StateT<EngineData = EngineData, Message = Msg>>>,
@@ -64,19 +64,13 @@ pub trait TEngine {
     fn process(&mut self) -> bool;
 }
 
-impl<'ttf> Engine<'ttf> {
-    pub fn new(sdl_context: SDL2Context, ttf_context: &'ttf mut Sdl2TtfContext) -> Engine<'ttf> {
+impl Engine {
+    pub fn new(sdl_context: SDL2Context, ttf_context: Sdl2TtfContext) -> Engine {
         let engine_data = EngineData::new();
         let event_pump: EventPump = sdl_context.sdl2.event_pump().unwrap();
         let video_subsystem: VideoSubsystem = sdl_context.sdl2.video().unwrap();
         let mut timer: TimerSubsystem = sdl_context.sdl2.timer().unwrap();
         let mut font_cache = FontCache::new(ttf_context);
-        font_cache.load_font("default",
-                             resources::get_resource_path("PressStart2P-Regular.ttf"),
-                             14);
-        font_cache.load_font("default-large",
-                             resources::get_resource_path("PressStart2P-Regular.ttf"),
-                             24);
         let window: Window = video_subsystem.window("SDL2 game",
                     engine_data.window_size.0,
                     engine_data.window_size.1)
@@ -91,6 +85,15 @@ impl<'ttf> Engine<'ttf> {
             .accelerated()
             .build()
             .expect("Could not aquire renderer");
+
+        font_cache.load_font(&mut renderer,
+                             "default",
+                             resources::get_resource_path("PressStart2P-Regular.ttf"),
+                             14);
+        font_cache.load_font(&mut renderer,
+                             "default-large",
+                             resources::get_resource_path("PressStart2P-Regular.ttf"),
+                             24);
 
         renderer.set_logical_size(engine_data.window_size.0, engine_data.window_size.1)
             .expect("Could not set logical size of renderer!");
@@ -112,86 +115,89 @@ impl<'ttf> Engine<'ttf> {
     }
 
     fn in_game_menu(&mut self) -> Box<MenuState> {
-        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
-        let font_large =
-            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
-        Box::new(MenuState::new(font,
-                                &mut self.renderer,
-                                vec![("Resume".to_string(),
-                                      Msg::MenuCommand(MenuMsg::ResumeGame)),
-                                     ("Exit to main Menu".to_string(),
-                                      Msg::MenuCommand(MenuMsg::ToMainMenu))],
+        let choices: Vec<(Texture, Msg)> = vec![
+            (self.font_cache.render_texture(&mut self.renderer, "default", "Resume").unwrap(), Msg::MenuCommand(MenuMsg::ResumeGame)),
+            (self.font_cache.render_texture(&mut self.renderer, "default", "Exit to main Menu").unwrap(), Msg::MenuCommand(MenuMsg::ToMainMenu)),
+        ];
+
+        let pause_texture = self.font_cache.render_texture(&mut self.renderer, "default-karge", "PAUSE").unwrap();
+
+        Box::new(MenuState::new(&mut self.renderer,
+                                choices,
                                 Some(Msg::MenuCommand(MenuMsg::ResumeGame)),
                                 MenuPosition::Centered,
-                                Some((font_large, "PAUSE".to_string())),
+                                Some((pause_texture, "PAUSE".to_string())),
                                 false))
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
-        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
-        let font_large =
-            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
-        Box::new(MenuState::new(font,
-                                &mut self.renderer,
-                                vec![("New Game".to_string(), Msg::StartGame),
-                                     ("Controls".to_string(), Msg::ShowOptions),
-                                     ("Credits".to_string(), Msg::ShowCredits),
-                                     ("Exit Game".to_string(), Msg::Exit)],
+        let choices: Vec<(Texture, Msg)> = vec![
+            (self.font_cache.render_texture(&mut self.renderer, "default", "New Game").unwrap(), Msg::StartGame),
+            (self.font_cache.render_texture(&mut self.renderer, "default", "Controls").unwrap(), Msg::ShowOptions),
+            (self.font_cache.render_texture(&mut self.renderer, "default", "Credits").unwrap(), Msg::ShowCredits),
+            (self.font_cache.render_texture(&mut self.renderer, "default", "Exit Game").unwrap(), Msg::Exit),
+        ];
+
+        let title_texture = self.font_cache.render_texture(&mut self.renderer, "default-large", "HUNGRY PIXEL").unwrap();
+
+        Box::new(MenuState::new(&mut self.renderer,
+                                choices,
                                 None,
                                 MenuPosition::Centered,
-                                Some((font_large, "HUNGRY PIXEL".to_string())),
+                                Some((title_texture, "HUNGRY PIXEL".to_string())),
                                 true))
     }
 
     fn intro_screen(&mut self) -> Box<StaticState> {
-        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
-        Box::new(StaticState::new(font,
-                                  &mut self.renderer,
-                                  vec!["This is a game about a pixel who is very hungry."
-                                           .to_string(),
-                                       "So he eats...".to_string(),
-                                       "And eats...".to_string(),
-                                       "He eats so much that he grows into a square!.."
-                                           .to_string()],
+        self.font_cache.render_texture(&mut self.renderer, "default", "This is a game about a pixel who is very hungry.").unwrap();
+        let textures: Vec<Texture> = vec![
+            self.font_cache.render_texture(&mut self.renderer, "default", "This is a game about a pixel who is very hungry.").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default", "So he eats...").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default", "And eats...").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default", "He eats so much that he grows into a square!..").unwrap(),
+        ];
+        Box::new(StaticState::new(&mut self.renderer,
+                                  textures,
                                   1000,
                                   Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
 
     fn gameover_screen(&mut self) -> Box<StaticState> {
-        let font =
-            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
-        Box::new(StaticState::new(font,
-                                  &mut self.renderer,
-                                  vec!["GAME OVER".to_string(), "Unfortunately.".to_string()],
+        let textures: Vec<Texture> = vec![
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "GAME OVER").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "Unfortunately.").unwrap(),
+        ];
+        Box::new(StaticState::new(&mut self.renderer,
+                                  textures,
                                   1000,
                                   Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
 
     fn winning_screen(&mut self) -> Box<StaticState> {
-        let font =
-            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
-        Box::new(StaticState::new(font,
-                                  &mut self.renderer,
-                                  vec!["Congratulations!".to_string(), "You've won!".to_string()],
+        let textures: Vec<Texture> = vec![
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "Congratulations!").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "You've won!").unwrap(),
+        ];
+        Box::new(StaticState::new(&mut self.renderer,
+                                  textures,
                                   1000,
                                   Msg::ShowCredits))
     }
 
     fn credits(&mut self) -> Box<StaticState> {
-        let font =
-            self.font_cache.cache.get("default-large").expect("Unable to open default font!");
-        Box::new(StaticState::new(font,
-                                  &mut self.renderer,
-                                  vec!["Author:".to_string(),
-                                       "Crazy-Owl".to_string(),
-                                       "http://GitHub.com/Crazy-Owl".to_string()],
+        let textures: Vec<Texture> = vec![
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "Author:").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "Crazy-Owl").unwrap(),
+            self.font_cache.render_texture(&mut self.renderer, "default-large", "http://GitHub.com/Crazy-Owl").unwrap(),
+        ];
+        Box::new(StaticState::new(&mut self.renderer,
+                                  textures,
                                   1500,
                                   Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
 
     fn options(&mut self) -> Box<OptionsState> {
-        let font = self.font_cache.cache.get("default").expect("Unable to open default font!");
-        Box::new(OptionsState::new(font, &mut self.renderer))
+        Box::new(OptionsState::new(&self.font_cache, &mut self.renderer))
     }
 
     pub fn start_game(&mut self) {
@@ -200,7 +206,7 @@ impl<'ttf> Engine<'ttf> {
     }
 }
 
-impl<'ttf> TEngine for Engine<'ttf> {
+impl TEngine for Engine {
     type Message = Msg;
     type EngineData = EngineData;
 

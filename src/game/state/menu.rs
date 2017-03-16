@@ -1,7 +1,6 @@
 use sdl2::render::{Texture, Renderer};
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
-use sdl2::ttf::Font;
 use sdl2::pixels::Color::*;
 use msg::Msg;
 use engine::data::EngineData;
@@ -30,24 +29,20 @@ pub struct MenuState {
 }
 
 impl<'m, 'b> MenuState {
-    pub fn new(f: &Font<'m, 'b>,
-               r: &mut Renderer,
-               choices: Vec<(String, Msg)>,
+    pub fn new(_: &mut Renderer,
+               choices: Vec<(Texture, Msg)>,
                on_escape: Option<Msg>,
                position: MenuPosition,
-               decoration_parameters: Option<(&Font<'m, 'b>, String)>,
+               decoration_parameters: Option<(Texture, String)>,
                is_fullscreen: bool)
                -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
         let mut max_height: u32 = 0;
         for choice in choices {
-            let surface =
-                f.render(&choice.0).solid(RGB(255, 255, 255)).expect("Could not render text!");
-            let texture = r.create_texture_from_surface(&surface).expect("Could not render text!");
-            let query = texture.query();
+            let query = choice.0.query();
             menu_items.push(MenuItem {
-                texture: texture,
+                texture: choice.0,
                 dimensions: (query.width, query.height),
                 msg: choice.1,
             });
@@ -56,12 +51,10 @@ impl<'m, 'b> MenuState {
             }
             max_height += query.height;
         }
-        let decoration_item = if let Some((fd, sd)) = decoration_parameters {
-            let surface = fd.render(&sd).solid(RGB(255, 255, 255)).expect("Could not render text!");
-            let texture = r.create_texture_from_surface(&surface).expect("Could not render text!");
-            let query = texture.query();
+        let decoration_item = if let Some((fd, _)) = decoration_parameters {
+            let query = fd.query();
             Some(MenuItem {
-                texture: texture,
+                texture: fd,
                 dimensions: (query.width, query.height),
                 msg: Msg::NoOp,
             })

@@ -1,6 +1,4 @@
 use sdl2::render::{Texture, Renderer};
-use sdl2::ttf::Font;
-use sdl2::pixels::Color::RGB;
 use sdl2::rect::Rect;
 use msg::Msg;
 use engine::data::EngineData;
@@ -20,19 +18,16 @@ pub struct StaticState {
 }
 
 impl StaticState {
-    pub fn new<'a, 'b>(f: &Font<'a, 'b>,
-                   r: &mut Renderer,
-                   strings: Vec<String>,
-                   pause: u32,
-                   next: Msg)
-                   -> StaticState {
+    pub fn new<'a, 'b>(r: &mut Renderer,
+                       strings: Vec<Texture>,
+                       pause: u32,
+                       next: Msg)
+                       -> StaticState {
         let mut lines: Vec<ScreenLine> = Vec::with_capacity(strings.len());
         let mut max_width: u32 = 0;
         let mut max_height: u32 = 0;
 
-        for s in strings {
-            let surface = f.render(&s).solid(RGB(255, 255, 255)).expect("Could not render text!");
-            let texture = r.create_texture_from_surface(&surface).expect("Could not render text!");
+        for texture in strings {
             let query = texture.query();
             max_height += query.height;
             if query.width > max_width {
