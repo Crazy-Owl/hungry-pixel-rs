@@ -70,13 +70,8 @@ impl StateT for OptionsState {
         match msg {
             Msg::Tick(_) |
             Msg::ButtonReleased(_) => None,
-            Msg::ButtonPressed(keycode) => {
-                if self.current_receiver.is_some() {
-                    Some(Msg::OptionsSet(keycode))
-                } else {
-                    self.menu.process_message(ed, msg)
-                }
-            }
+            Msg::ButtonPressed(keycode) if self.current_receiver.is_some() => Some(Msg::OptionsSet(keycode)),
+            Msg::ButtonPressed(_) => self.menu.process_message(ed, msg),
             Msg::OptionsSelect(movement) => {
                 self.current_receiver = Some(movement);
                 None
