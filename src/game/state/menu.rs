@@ -80,7 +80,7 @@ impl<'m, 'b> MenuState {
             position: position,
             decoration: decoration_item,
             is_fullscreen: is_fullscreen,
-            is_dirty: false, // TODO: when we get rid of pre-rendering textures for menu, this should be set to false
+            is_dirty: false, // TODO
         }
     }
 
@@ -97,7 +97,19 @@ impl<'m, 'b> MenuState {
             decoration.dimensions = (query.width, query.height);
         }
 
+        self.resize();
+
         self.is_dirty = false;
+    }
+
+    pub fn resize(&mut self) {
+        let mut max_width = 0;
+        for menu_item in &self.menu_items {
+            if menu_item.dimensions.0 > max_width {
+                max_width = menu_item.dimensions.0;
+            }
+        }
+        self.dimensions.0 = max_width;
     }
 
     pub fn change_item_text<T: Into<String>>(&mut self, idx: usize, new_text: T) {

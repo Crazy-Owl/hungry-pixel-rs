@@ -1,6 +1,6 @@
 [package]
 name = "hungry-pixel-rs"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Crazy-Owl <stalker401@gmail.com>"]
 
 [dependencies]
