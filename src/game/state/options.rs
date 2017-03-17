@@ -17,22 +17,18 @@ pub struct OptionsState {
 
 impl OptionsState {
     pub fn new<'m, 'b>(font_cache: &mut FontCache, r: &mut Renderer) -> OptionsState {
-        let choices: Vec<(Texture, Msg)> =
-            vec![(font_cache.render_texture(r, "default", "Up", None).unwrap(),
-                  Msg::OptionsSelect(Movement::Up)),
-                 (font_cache.render_texture(r, "default", "Down", None).unwrap(),
-                  Msg::OptionsSelect(Movement::Down)),
-                 (font_cache.render_texture(r, "default", "Left", None).unwrap(),
-                  Msg::OptionsSelect(Movement::Left)),
-                 (font_cache.render_texture(r, "default", "Right", None).unwrap(),
-                  Msg::OptionsSelect(Movement::Right))];
+        let choices =
+            vec![("Up", Msg::OptionsSelect(Movement::Up)),
+                 ("Down", Msg::OptionsSelect(Movement::Down)),
+                 ("Left", Msg::OptionsSelect(Movement::Left)),
+                 ("Right", Msg::OptionsSelect(Movement::Right))];
 
-        let decoration_texture = font_cache.render_texture(r, "default-large", "Options", None).unwrap();
         let menu = MenuState::new(r,
+                                  font_cache,
                                   choices,
                                   Some(Msg::PopState(1)),
                                   MenuPosition::Centered,
-                                  Some((decoration_texture, "Options".to_string())),
+                                  Some("Options"),
                                   true);
         let message = font_cache.render_texture(r, "default", "Press new control", None).unwrap();
         OptionsState {
@@ -88,7 +84,7 @@ impl StateT for OptionsState {
         }
     }
 
-    fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
+    fn render(&mut self, r: &mut Renderer, ed: &mut EngineData) {
         self.menu.render(r, ed);
         if self.current_receiver.is_some() {
             let message_query = self.message.query();

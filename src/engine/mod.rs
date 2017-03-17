@@ -113,64 +113,32 @@ impl Engine {
     }
 
     fn in_game_menu(&mut self) -> Box<MenuState> {
-        let choices: Vec<(Texture, Msg)> =
-            vec![(self.engine_data
-                      .font_cache
-                      .render_texture(&mut self.renderer, "default", "Resume", None)
-                      .unwrap(),
-                  Msg::MenuCommand(MenuMsg::ResumeGame)),
-                 (self.engine_data
-                      .font_cache
-                      .render_texture(&mut self.renderer, "default", "Exit to main Menu", None)
-                      .unwrap(),
-                  Msg::MenuCommand(MenuMsg::ToMainMenu))];
-
-        let pause_texture = self.engine_data
-            .font_cache
-            .render_texture(&mut self.renderer, "default-large", "PAUSE", None)
-            .unwrap();
+        let choices =
+            vec![("Resume", Msg::MenuCommand(MenuMsg::ResumeGame)),
+                 ("To Main Menu", Msg::MenuCommand(MenuMsg::ToMainMenu))];
 
         Box::new(MenuState::new(&mut self.renderer,
+                                &mut self.engine_data.font_cache,
                                 choices,
                                 Some(Msg::MenuCommand(MenuMsg::ResumeGame)),
                                 MenuPosition::Centered,
-                                Some((pause_texture, "PAUSE".to_string())),
+                                Some("PAUSE"),
                                 false))
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
-        let choices: Vec<(Texture, Msg)> =
-            vec![(self.engine_data
-                      .font_cache
-                      .render_texture(&mut self.renderer, "default", "New Game", None)
-                      .unwrap(),
-                  Msg::StartGame),
-                 (self.engine_data
-                      .font_cache
-                      .render_texture(&mut self.renderer, "default", "Controls", None)
-                      .unwrap(),
-                  Msg::ShowOptions),
-                 (self.engine_data
-                      .font_cache
-                      .render_texture(&mut self.renderer, "default", "Credits", None)
-                      .unwrap(),
-                  Msg::ShowCredits),
-                 (self.engine_data
-                      .font_cache
-                      .render_texture(&mut self.renderer, "default", "Exit Game", None)
-                      .unwrap(),
-                  Msg::Exit)];
-
-        let title_texture = self.engine_data
-            .font_cache
-            .render_texture(&mut self.renderer, "default-large", "HUNGRY PIXEL", None)
-            .unwrap();
+        let choices =
+            vec![("New Game", Msg::StartGame),
+                 ("Controls", Msg::ShowOptions),
+                 ("Credits", Msg::ShowCredits),
+                 ("Exit Game", Msg::Exit)];
 
         Box::new(MenuState::new(&mut self.renderer,
+                                &mut self.engine_data.font_cache,
                                 choices,
                                 None,
                                 MenuPosition::Centered,
-                                Some((title_texture, "HUNGRY PIXEL".to_string())),
+                                Some("HUNGRY PIXEL"),
                                 true))
     }
 
@@ -368,7 +336,7 @@ impl TEngine for Engine {
                 }
             }
             for index in last_drawable_index..self.states_stack.len() {
-                self.states_stack[index].render(&mut self.renderer, &self.engine_data);
+                self.states_stack[index].render(&mut self.renderer, &mut self.engine_data);
             }
         }
         // if let Some(state) = self.states_stack.last_mut() {

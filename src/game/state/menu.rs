@@ -2,9 +2,11 @@ use sdl2::render::{Texture, Renderer};
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color::*;
+
 use msg::Msg;
 use engine::data::EngineData;
 use engine::state::StateT;
+use engine::font::FontCache;
 use std::cmp;
 
 pub enum MenuPosition {
@@ -13,6 +15,7 @@ pub enum MenuPosition {
 }
 
 struct MenuItem {
+    text: String,
     texture: Texture,
     dimensions: (u32, u32),
     msg: Msg,
@@ -26,23 +29,28 @@ pub struct MenuState {
     position: MenuPosition,
     decoration: Option<MenuItem>,
     is_fullscreen: bool,
+    is_dirty: bool,
 }
 
 impl<'m, 'b> MenuState {
-    pub fn new(_: &mut Renderer,
-               choices: Vec<(Texture, Msg)>,
+    pub fn new<T: Into<String>>(r: &mut Renderer,
+               font_cache: &mut FontCache,
+               choices: Vec<(T, Msg)>,
                on_escape: Option<Msg>,
                position: MenuPosition,
-               decoration_parameters: Option<(Texture, String)>,
+               decoration_parameters: Option<(T)>,
                is_fullscreen: bool)
                -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
         let mut max_height: u32 = 0;
         for choice in choices {
-            let query = choice.0.query();
+            let text = choice.0.into();
+            let texture = font_cache.render_texture(r, "default", &text, None).unwrap();
+            let query = texture.query();
             menu_items.push(MenuItem {
-                texture: choice.0,
+                text: text,
+                texture: texture,
                 dimensions: (query.width, query.height),
                 msg: choice.1,
             });
@@ -51,10 +59,13 @@ impl<'m, 'b> MenuState {
             }
             max_height += query.height;
         }
-        let decoration_item = if let Some((fd, _)) = decoration_parameters {
-            let query = fd.query();
+        let decoration_item = if let Some(s) = decoration_parameters {
+            let text = s.into();
+            let texture = font_cache.render_texture(r, "default", &text, None).unwrap();
+            let query = texture.query();
             Some(MenuItem {
-                texture: fd,
+                text: text,
+                texture: texture,
                 dimensions: (query.width, query.height),
                 msg: Msg::NoOp,
             })
@@ -69,7 +80,30 @@ impl<'m, 'b> MenuState {
             position: position,
             decoration: decoration_item,
             is_fullscreen: is_fullscreen,
+            is_dirty: false, // TODO: when we get rid of pre-rendering textures for menu, this should be set to false
         }
+    }
+
+    pub fn rerender_menu_items(&mut self, r: &mut Renderer, fc: &mut FontCache) {
+        for menu_item in self.menu_items.iter_mut() {
+            menu_item.texture = fc.render_texture(r, "default", &menu_item.text, None).unwrap();
+            let query = menu_item.texture.query();
+            menu_item.dimensions = (query.width, query.height);
+        }
+
+        if let Some(ref mut decoration) = self.decoration {
+            decoration.texture = fc.render_texture(r, "default", &decoration.text, None).unwrap();
+            let query = decoration.texture.query();
+            decoration.dimensions = (query.width, query.height);
+        }
+
+        self.is_dirty = false;
+    }
+
+    pub fn change_item_text<T: Into<String>>(&mut self, idx: usize, new_text: T) {
+        let item: &mut MenuItem = &mut self.menu_items[idx];
+        item.text = new_text.into();
+        self.is_dirty = true;
     }
 
     pub fn process_button(&mut self, k: Keycode) -> Option<Msg> {
@@ -118,7 +152,10 @@ impl StateT for MenuState {
         }
     }
 
-    fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
+    fn render(&mut self, r: &mut Renderer, ed: &mut EngineData) {
+        if self.is_dirty {
+            self.rerender_menu_items(r, &mut ed.font_cache);
+        }
         let mut current_y: u32 = match self.position {
             MenuPosition::Centered => (ed.window_size.1 / 2) - (self.dimensions.1 / 2),
             MenuPosition::Pos(_, y) => y,

@@ -70,7 +70,7 @@ impl StateT for StaticState {
         }
     }
 
-    fn render(&mut self, r: &mut Renderer, ed: &EngineData) {
+    fn render(&mut self, r: &mut Renderer, ed: &mut EngineData) {
         let mut current_y: u32 = (ed.window_size.1 / 2) - (self.dimensions.1 / 2);
         let x: u32 = (ed.window_size.0 / 2) - (self.dimensions.0 / 2);
         for scr_line in &self.lines {
