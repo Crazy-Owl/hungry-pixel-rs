@@ -127,7 +127,7 @@ impl Engine {
 
         let pause_texture = self.engine_data
             .font_cache
-            .render_texture(&mut self.renderer, "default-karge", "PAUSE", None)
+            .render_texture(&mut self.renderer, "default-large", "PAUSE", None)
             .unwrap();
 
         Box::new(MenuState::new(&mut self.renderer,
