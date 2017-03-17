@@ -16,25 +16,25 @@ pub struct OptionsState {
 }
 
 impl OptionsState {
-    pub fn new<'m, 'b>(font_cache: &FontCache, r: &mut Renderer) -> OptionsState {
+    pub fn new<'m, 'b>(font_cache: &mut FontCache, r: &mut Renderer) -> OptionsState {
         let choices: Vec<(Texture, Msg)> =
-            vec![(font_cache.render_texture(r, "default", "Up").unwrap(),
+            vec![(font_cache.render_texture(r, "default", "Up", None).unwrap(),
                   Msg::OptionsSelect(Movement::Up)),
-                 (font_cache.render_texture(r, "default", "Down").unwrap(),
+                 (font_cache.render_texture(r, "default", "Down", None).unwrap(),
                   Msg::OptionsSelect(Movement::Down)),
-                 (font_cache.render_texture(r, "default", "Left").unwrap(),
+                 (font_cache.render_texture(r, "default", "Left", None).unwrap(),
                   Msg::OptionsSelect(Movement::Left)),
-                 (font_cache.render_texture(r, "default", "Right").unwrap(),
+                 (font_cache.render_texture(r, "default", "Right", None).unwrap(),
                   Msg::OptionsSelect(Movement::Right))];
 
-        let decoration_texture = font_cache.render_texture(r, "default-large", "Options").unwrap();
+        let decoration_texture = font_cache.render_texture(r, "default-large", "Options", None).unwrap();
         let menu = MenuState::new(r,
                                   choices,
                                   Some(Msg::PopState(1)),
                                   MenuPosition::Centered,
                                   Some((decoration_texture, "Options".to_string())),
                                   true);
-        let message = font_cache.render_texture(r, "default", "Press new control").unwrap();
+        let message = font_cache.render_texture(r, "default", "Press new control", None).unwrap();
         OptionsState {
             menu: menu,
             message: message,

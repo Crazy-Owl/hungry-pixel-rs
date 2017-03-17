@@ -116,18 +116,18 @@ impl Engine {
         let choices: Vec<(Texture, Msg)> =
             vec![(self.engine_data
                       .font_cache
-                      .render_texture(&mut self.renderer, "default", "Resume")
+                      .render_texture(&mut self.renderer, "default", "Resume", None)
                       .unwrap(),
                   Msg::MenuCommand(MenuMsg::ResumeGame)),
                  (self.engine_data
                       .font_cache
-                      .render_texture(&mut self.renderer, "default", "Exit to main Menu")
+                      .render_texture(&mut self.renderer, "default", "Exit to main Menu", None)
                       .unwrap(),
                   Msg::MenuCommand(MenuMsg::ToMainMenu))];
 
         let pause_texture = self.engine_data
             .font_cache
-            .render_texture(&mut self.renderer, "default-karge", "PAUSE")
+            .render_texture(&mut self.renderer, "default-karge", "PAUSE", None)
             .unwrap();
 
         Box::new(MenuState::new(&mut self.renderer,
@@ -142,28 +142,28 @@ impl Engine {
         let choices: Vec<(Texture, Msg)> =
             vec![(self.engine_data
                       .font_cache
-                      .render_texture(&mut self.renderer, "default", "New Game")
+                      .render_texture(&mut self.renderer, "default", "New Game", None)
                       .unwrap(),
                   Msg::StartGame),
                  (self.engine_data
                       .font_cache
-                      .render_texture(&mut self.renderer, "default", "Controls")
+                      .render_texture(&mut self.renderer, "default", "Controls", None)
                       .unwrap(),
                   Msg::ShowOptions),
                  (self.engine_data
                       .font_cache
-                      .render_texture(&mut self.renderer, "default", "Credits")
+                      .render_texture(&mut self.renderer, "default", "Credits", None)
                       .unwrap(),
                   Msg::ShowCredits),
                  (self.engine_data
                       .font_cache
-                      .render_texture(&mut self.renderer, "default", "Exit Game")
+                      .render_texture(&mut self.renderer, "default", "Exit Game", None)
                       .unwrap(),
                   Msg::Exit)];
 
         let title_texture = self.engine_data
             .font_cache
-            .render_texture(&mut self.renderer, "default-large", "HUNGRY PIXEL")
+            .render_texture(&mut self.renderer, "default-large", "HUNGRY PIXEL", None)
             .unwrap();
 
         Box::new(MenuState::new(&mut self.renderer,
@@ -179,28 +179,30 @@ impl Engine {
             .font_cache
             .render_texture(&mut self.renderer,
                             "default",
-                            "This is a game about a pixel who is very hungry.")
+                            "This is a game about a pixel who is very hungry.",
+                            None)
             .unwrap();
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
                      .render_texture(&mut self.renderer,
                                      "default",
-                                     "This is a game about a pixel who is very hungry.")
+                                     "This is a game about a pixel who is very hungry.",
+                                     None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default", "So he eats...")
+                     .render_texture(&mut self.renderer, "default", "So he eats...", None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default", "And eats...")
+                     .render_texture(&mut self.renderer, "default", "And eats...", None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
                      .render_texture(&mut self.renderer,
                                      "default",
-                                     "He eats so much that he grows into a square!..")
+                                     "He eats so much that he grows into a square!..", None)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
@@ -209,11 +211,11 @@ impl Engine {
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "GAME OVER")
+                     .render_texture(&mut self.renderer, "default-large", "GAME OVER", None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Unfortunately.")
+                     .render_texture(&mut self.renderer, "default-large", "Unfortunately.", None)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
@@ -222,11 +224,11 @@ impl Engine {
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Congratulations!")
+                     .render_texture(&mut self.renderer, "default-large", "Congratulations!", None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "You've won!")
+                     .render_texture(&mut self.renderer, "default-large", "You've won!", None)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::ShowCredits))
     }
@@ -235,23 +237,23 @@ impl Engine {
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Author:")
+                     .render_texture(&mut self.renderer, "default-large", "Author:", None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Crazy-Owl")
+                     .render_texture(&mut self.renderer, "default-large", "Crazy-Owl", None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
                      .render_texture(&mut self.renderer,
                                      "default-large",
-                                     "http://GitHub.com/Crazy-Owl")
+                                     "http://GitHub.com/Crazy-Owl", Some((0, 255, 0, 0)))
                      .unwrap()];
         Box::new(StaticState::new(textures, 1500, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
 
     fn options(&mut self) -> Box<OptionsState> {
-        Box::new(OptionsState::new(&self.engine_data.font_cache, &mut self.renderer))
+        Box::new(OptionsState::new(&mut self.engine_data.font_cache, &mut self.renderer))
     }
 
     pub fn start_game(&mut self) {

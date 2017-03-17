@@ -96,13 +96,14 @@ impl FontCache {
         }
     }
 
-    pub fn render_texture<'a, T: Into<&'a str>>(&self,
+    pub fn render_texture<'a, T: Into<&'a str>>(&mut self,
                                                 r: &mut Renderer,
                                                 key: T,
-                                                text: &str)
+                                                text: &str,
+                                                color_mod: Option<(u8, u8, u8, u8)>)
                                                 -> Result<Texture, String> {
         let key_str = key.into();
-        let font = self.cache.get(key_str).ok_or("Font not found".to_string())?;
+        let mut font = self.cache.get_mut(key_str).ok_or("Font not found".to_string())?;
 
         r.render_target()
             .unwrap()
@@ -110,6 +111,14 @@ impl FontCache {
                             text.len() as u32 * font.max_size.0,
                             font.max_size.1)
             .unwrap();
+
+        let current_color_mod = font.texture.color_mod();
+        let current_alpha_mod = font.texture.alpha_mod();
+
+        if let Some((r_mod, g_mod, b_mod, a_mod)) = color_mod {
+            font.texture.set_color_mod(r_mod, g_mod, b_mod);
+            font.texture.set_alpha_mod(a_mod);
+        }
 
         let mut current_x: i32 = 0;
 
@@ -120,17 +129,31 @@ impl FontCache {
             current_x += font.max_size.0 as i32;
         }
 
+        if color_mod.is_some() {
+            font.texture.set_color_mod(current_color_mod.0, current_color_mod.1, current_color_mod.2);
+            font.texture.set_alpha_mod(current_alpha_mod);
+        }
+
         r.render_target().unwrap().reset().unwrap().ok_or("Can not render texture!".to_string())
     }
 
-    pub fn render_text<'a, T: Into<&'a str>>(&self,
+    pub fn render_text<'a, T: Into<&'a str>>(&mut self,
                                              r: &mut Renderer,
                                              key: T,
                                              text: &str,
+                                             color_mod: Option<(u8, u8, u8, u8)>,
                                              x: i32,
                                              y: i32)
                                              -> Result<(), String> {
-        let font = self.cache.get(key.into()).ok_or("Font not found".to_string())?;
+        let font = self.cache.get_mut(key.into()).ok_or("Font not found".to_string())?;
+
+        let current_color_mod = font.texture.color_mod();
+        let current_alpha_mod = font.texture.alpha_mod();
+
+        if let Some((r_mod, g_mod, b_mod, a_mod)) = color_mod {
+            font.texture.set_color_mod(r_mod, g_mod, b_mod);
+            font.texture.set_alpha_mod(a_mod);
+        }
 
         let mut current_x: i32 = x;
 
@@ -139,6 +162,11 @@ impl FontCache {
                       font.glyphs.get(&character).map(|ref x| *x.clone()),
                       Some(Rect::new(current_x, y, font.max_size.0, font.max_size.1)))?;
             current_x += font.max_size.0 as i32;
+        }
+
+        if color_mod.is_some() {
+            font.texture.set_color_mod(current_color_mod.0, current_color_mod.1, current_color_mod.2);
+            font.texture.set_alpha_mod(current_alpha_mod);
         }
 
         Ok(())
