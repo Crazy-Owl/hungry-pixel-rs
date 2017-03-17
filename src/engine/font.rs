@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{Debug, Formatter, Error};
 use std::path::PathBuf;
 
 use sdl2::ttf::{Sdl2TtfContext, Font, GlyphMetrics};
@@ -170,5 +171,11 @@ impl FontCache {
         }
 
         Ok(())
+    }
+}
+
+impl Debug for FontCache {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "FontCache {{ {} fonts }}", self.cache.len())
     }
 }

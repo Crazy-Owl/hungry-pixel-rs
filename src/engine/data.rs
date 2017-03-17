@@ -2,7 +2,7 @@ use engine::font::FontCache;
 
 /// Model
 /// For now it just holds the message to display and running state of the game
-//#[derive(Debug)]
+#[derive(Debug)]
 pub struct EngineData {
     pub running: bool,
     pub window_size: (u32, u32),
