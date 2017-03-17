@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter, Result};
+
 use sdl2::keyboard::Keycode;
 /// Message type
 #[derive(Debug, Clone, Copy)]
@@ -41,4 +43,17 @@ pub enum Movement {
     Down,
     Left,
     Right,
+}
+
+impl Display for Movement {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", {
+            match *self {
+                Movement::Up => "Up",
+                Movement::Down => "Down",
+                Movement::Left => "Left",
+                Movement::Right => "Right",
+            }
+        })
+    }
 }

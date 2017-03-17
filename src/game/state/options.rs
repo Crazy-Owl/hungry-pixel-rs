@@ -13,15 +13,16 @@ pub struct OptionsState {
     menu: MenuState,
     message: Texture,
     current_receiver: Option<Movement>,
+    is_dirty: bool,
 }
 
 impl OptionsState {
     pub fn new<'m, 'b>(font_cache: &mut FontCache, r: &mut Renderer) -> OptionsState {
         let choices =
-            vec![("Up", Msg::OptionsSelect(Movement::Up)),
-                 ("Down", Msg::OptionsSelect(Movement::Down)),
-                 ("Left", Msg::OptionsSelect(Movement::Left)),
-                 ("Right", Msg::OptionsSelect(Movement::Right))];
+            vec![("Up    Up", Msg::OptionsSelect(Movement::Up)),
+                 ("Down  Down", Msg::OptionsSelect(Movement::Down)),
+                 ("Left  Left", Msg::OptionsSelect(Movement::Left)),
+                 ("Right Right", Msg::OptionsSelect(Movement::Right))];
 
         let menu = MenuState::new(r,
                                   font_cache,
@@ -35,7 +36,24 @@ impl OptionsState {
             menu: menu,
             message: message,
             current_receiver: None,
+            is_dirty: true,
         }
+    }
+
+    pub fn update_mappings(&mut self) {
+        let movement_map = MOVEMENT_MAPPING.lock().unwrap();
+        for (idx, format, m) in vec![(0, "Up", Movement::Up),
+                                     (1, "Down", Movement::Down),
+                                     (2, "Left", Movement::Left),
+                                     (3, "Right", Movement::Right)] {
+            for (key, value) in movement_map.iter() {
+                if *value == m {
+                    let new_string = format!("{:<6}{}", format, key);
+                    self.menu.change_item_text(idx, new_string);
+                }
+            }
+        }
+        self.is_dirty = false;
     }
 
     pub fn remap_key(&mut self, m: Movement, k: Keycode) -> Option<Msg> {
@@ -54,6 +72,7 @@ impl OptionsState {
         }
 
         movement_map.insert(k, m);
+        self.is_dirty = true;
         None
     }
 }
@@ -85,6 +104,9 @@ impl StateT for OptionsState {
     }
 
     fn render(&mut self, r: &mut Renderer, ed: &mut EngineData) {
+        if self.is_dirty {
+            self.update_mappings();
+        }
         self.menu.render(r, ed);
         if self.current_receiver.is_some() {
             let message_query = self.message.query();
