@@ -18,6 +18,21 @@ Next, clone the repository and run `cargo build --release` in it. You will need 
 
 Linux users can run `sh scripts/release.sh` from repository root to create a `.tar.gz` archive with everything needed to play (including a shell-script `run.sh`).
 
+#### Building under Windows
+
+If you want to build the game under Windows, you will have to do the following steps:
+
+1. Install Rust and Cargo (preferrable way to do so is to use rustup.rs)
+2. Install MinGW (you will likely want to install MSYS as well) and make sure its `bin` directory is added to PATH.
+3. Use `rust-x86_64-pc-windows-stable` (or the corresponding 32 bit version) as your target in rustup
+4. Download MinGW dev libs from SDL2 site. You will need SDL2, SDL2_image and SDL2_ttf.
+5. Unpack the archives downloaded in previous step, and put all `.la` and `.a` files from `lib` directory in archive to your rustup toolchain `lib` folder, e.g. `C:\Users\<your username>\.rustup\toolchains\stable-x86_64-pc-windows-gnu\lib\rustlib\x86_64-pc-windows-gnu\lib`
+6. Put `.dll` files from the archives somewhere in your PATH (MinGW `bin` directory will do just fine) and also save them somewhere if your intention is to create a standalone executable archive.
+7. Run MSYS prompt and put hungry-pixel-rs sources in your MSYS `home` directory (it is located within MinGW path)
+8. Use `cargo build --release` to build the game, then copy resources and executable to target directory along with all the `dll` files.
+
+You will likely need the latest MSVC redistributable which can be obtained via Windows Update or from Microsoft site.
+
 ## Architectural overview
 
 Game architecture is based on a notion of "States". A `State` is an entity that knows how to respond to `Messages` and how to `render` itself on screen. States are gathered into a stack of states that resides in the `Engine` entity. `Engine` also has a queue of `Messages`.
