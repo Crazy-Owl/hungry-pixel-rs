@@ -80,7 +80,6 @@ impl FontCache {
             }
             let glyph_surface: Surface<'static> = f.render_char(glyph)
                 .solid(Color::RGBA(255, 255, 255, 0))
-                .ok()
                 .expect("Could not render glyph!");
             let glyph_texture = r.create_texture_from_surface(&glyph_surface).unwrap();
             let glyph_rect: Rect = Rect::new(current_x as i32, current_y as i32, max_x, max_y);
@@ -104,7 +103,7 @@ impl FontCache {
                                                 color_mod: Option<(u8, u8, u8, u8)>)
                                                 -> Result<Texture, String> {
         let key_str = key.into();
-        let mut font = self.cache.get_mut(key_str).ok_or("Font not found".to_string())?;
+        let mut font = self.cache.get_mut(key_str).ok_or_else(|| "Font not found".to_string())?;
 
         r.render_target()
             .unwrap()
@@ -125,17 +124,23 @@ impl FontCache {
 
         for character in text.chars() {
             r.copy(&font.texture,
-                      font.glyphs.get(&character).map(|ref x| *x.clone()),
+                      font.glyphs.get(&character).cloned(),
                       Some(Rect::new(current_x, 0, font.max_size.0, font.max_size.1)))?;
             current_x += font.max_size.0 as i32;
         }
 
         if color_mod.is_some() {
-            font.texture.set_color_mod(current_color_mod.0, current_color_mod.1, current_color_mod.2);
+            font.texture.set_color_mod(current_color_mod.0,
+                                       current_color_mod.1,
+                                       current_color_mod.2);
             font.texture.set_alpha_mod(current_alpha_mod);
         }
 
-        r.render_target().unwrap().reset().unwrap().ok_or("Can not render texture!".to_string())
+        r.render_target()
+            .unwrap()
+            .reset()
+            .unwrap()
+            .ok_or_else(|| "Can not render texture!".to_string())
     }
 
     pub fn render_text<'a, T: Into<&'a str>>(&mut self,
@@ -146,7 +151,7 @@ impl FontCache {
                                              x: i32,
                                              y: i32)
                                              -> Result<(), String> {
-        let font = self.cache.get_mut(key.into()).ok_or("Font not found".to_string())?;
+        let font = self.cache.get_mut(key.into()).ok_or_else(|| "Font not found".to_string())?;
 
         let current_color_mod = font.texture.color_mod();
         let current_alpha_mod = font.texture.alpha_mod();
@@ -160,13 +165,15 @@ impl FontCache {
 
         for character in text.chars() {
             r.copy(&font.texture,
-                      font.glyphs.get(&character).map(|ref x| *x.clone()),
+                      font.glyphs.get(&character).cloned(),
                       Some(Rect::new(current_x, y, font.max_size.0, font.max_size.1)))?;
             current_x += font.max_size.0 as i32;
         }
 
         if color_mod.is_some() {
-            font.texture.set_color_mod(current_color_mod.0, current_color_mod.1, current_color_mod.2);
+            font.texture.set_color_mod(current_color_mod.0,
+                                       current_color_mod.1,
+                                       current_color_mod.2);
             font.texture.set_alpha_mod(current_alpha_mod);
         }
 

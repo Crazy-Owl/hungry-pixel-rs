@@ -17,12 +17,11 @@ pub struct OptionsState {
 }
 
 impl OptionsState {
-    pub fn new<'m, 'b>(font_cache: &mut FontCache, r: &mut Renderer) -> OptionsState {
-        let choices =
-            vec![("Up    Up", Msg::OptionsSelect(Movement::Up)),
-                 ("Down  Down", Msg::OptionsSelect(Movement::Down)),
-                 ("Left  Left", Msg::OptionsSelect(Movement::Left)),
-                 ("Right Right", Msg::OptionsSelect(Movement::Right))];
+    pub fn new(font_cache: &mut FontCache, r: &mut Renderer) -> OptionsState {
+        let choices = vec![("Up    Up", Msg::OptionsSelect(Movement::Up)),
+                           ("Down  Down", Msg::OptionsSelect(Movement::Down)),
+                           ("Left  Left", Msg::OptionsSelect(Movement::Left)),
+                           ("Right Right", Msg::OptionsSelect(Movement::Right))];
 
         let menu = MenuState::new(r,
                                   font_cache,
@@ -42,10 +41,11 @@ impl OptionsState {
 
     pub fn update_mappings(&mut self) {
         let movement_map = MOVEMENT_MAPPING.lock().unwrap();
-        for (idx, format, m) in vec![(0, "Up", Movement::Up),
-                                     (1, "Down", Movement::Down),
-                                     (2, "Left", Movement::Left),
-                                     (3, "Right", Movement::Right)] {
+        for &(idx, format, m) in
+            &[(0, "Up", Movement::Up),
+              (1, "Down", Movement::Down),
+              (2, "Left", Movement::Left),
+              (3, "Right", Movement::Right)] {
             for (key, value) in movement_map.iter() {
                 if *value == m {
                     let new_string = format!("{:<6}{}", format, key);
@@ -85,7 +85,9 @@ impl StateT for OptionsState {
         match msg {
             Msg::Tick(_) |
             Msg::ButtonReleased(_) => None,
-            Msg::ButtonPressed(keycode) if self.current_receiver.is_some() => Some(Msg::OptionsSet(keycode)),
+            Msg::ButtonPressed(keycode) if self.current_receiver.is_some() => {
+                Some(Msg::OptionsSet(keycode))
+            }
             Msg::ButtonPressed(_) => self.menu.process_message(ed, msg),
             Msg::OptionsSelect(movement) => {
                 self.current_receiver = Some(movement);

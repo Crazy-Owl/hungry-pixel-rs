@@ -34,13 +34,13 @@ pub struct MenuState {
 
 impl<'m, 'b> MenuState {
     pub fn new<T: Into<String>>(r: &mut Renderer,
-               font_cache: &mut FontCache,
-               choices: Vec<(T, Msg)>,
-               on_escape: Option<Msg>,
-               position: MenuPosition,
-               decoration_parameters: Option<(T)>,
-               is_fullscreen: bool)
-               -> MenuState {
+                                font_cache: &mut FontCache,
+                                choices: Vec<(T, Msg)>,
+                                on_escape: Option<Msg>,
+                                position: MenuPosition,
+                                decoration_parameters: Option<(T)>,
+                                is_fullscreen: bool)
+                                -> MenuState {
         let mut menu_items = Vec::new();
         let mut max_width: u32 = 0;
         let mut max_height: u32 = 0;
@@ -85,7 +85,7 @@ impl<'m, 'b> MenuState {
     }
 
     pub fn rerender_menu_items(&mut self, r: &mut Renderer, fc: &mut FontCache) {
-        for menu_item in self.menu_items.iter_mut() {
+        for menu_item in &mut self.menu_items {
             menu_item.texture = fc.render_texture(r, "default", &menu_item.text, None).unwrap();
             let query = menu_item.texture.query();
             menu_item.dimensions = (query.width, query.height);

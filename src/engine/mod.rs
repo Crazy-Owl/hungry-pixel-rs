@@ -113,9 +113,8 @@ impl Engine {
     }
 
     fn in_game_menu(&mut self) -> Box<MenuState> {
-        let choices =
-            vec![("Resume", Msg::MenuCommand(MenuMsg::ResumeGame)),
-                 ("To Main Menu", Msg::MenuCommand(MenuMsg::ToMainMenu))];
+        let choices = vec![("Resume", Msg::MenuCommand(MenuMsg::ResumeGame)),
+                           ("To Main Menu", Msg::MenuCommand(MenuMsg::ToMainMenu))];
 
         Box::new(MenuState::new(&mut self.renderer,
                                 &mut self.engine_data.font_cache,
@@ -127,11 +126,10 @@ impl Engine {
     }
 
     fn main_menu(&mut self) -> Box<MenuState> {
-        let choices =
-            vec![("New Game", Msg::StartGame),
-                 ("Controls", Msg::ShowOptions),
-                 ("Credits", Msg::ShowCredits),
-                 ("Exit Game", Msg::Exit)];
+        let choices = vec![("New Game", Msg::StartGame),
+                           ("Controls", Msg::ShowOptions),
+                           ("Credits", Msg::ShowCredits),
+                           ("Exit Game", Msg::Exit)];
 
         Box::new(MenuState::new(&mut self.renderer,
                                 &mut self.engine_data.font_cache,
@@ -170,7 +168,8 @@ impl Engine {
                      .font_cache
                      .render_texture(&mut self.renderer,
                                      "default",
-                                     "He eats so much that he grows into a square!..", None)
+                                     "He eats so much that he grows into a square!..",
+                                     None)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
@@ -192,7 +191,10 @@ impl Engine {
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Congratulations!", None)
+                     .render_texture(&mut self.renderer,
+                                     "default-large",
+                                     "Congratulations!",
+                                     None)
                      .unwrap(),
                  self.engine_data
                      .font_cache
@@ -215,7 +217,8 @@ impl Engine {
                      .font_cache
                      .render_texture(&mut self.renderer,
                                      "default-large",
-                                     "http://GitHub.com/Crazy-Owl", Some((0, 255, 0, 0)))
+                                     "http://GitHub.com/Crazy-Owl",
+                                     Some((0, 255, 0, 0)))
                      .unwrap()];
         Box::new(StaticState::new(textures, 1500, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
