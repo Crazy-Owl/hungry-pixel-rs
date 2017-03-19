@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter, Error};
 use std::path::PathBuf;
+use std::convert::From;
 
 use sdl2::ttf::{Sdl2TtfContext, Font, GlyphMetrics};
 use sdl2::render::{Renderer, Texture};
@@ -9,6 +10,26 @@ use sdl2::pixels::{PixelFormatEnum, Color};
 use sdl2::surface::Surface;
 
 const GLYPH_SET: &'static str = "/\\| _-+=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!.,'\":;абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+
+pub struct ColorMod(u8, u8, u8, u8);
+
+impl Default for ColorMod {
+    fn default() -> Self {
+        ColorMod(255, 255, 255, 255)
+    }
+}
+
+impl From<(u8, u8, u8, u8)> for ColorMod {
+    fn from(arg: (u8, u8, u8, u8)) -> Self {
+        ColorMod(arg.0, arg.1, arg.2, arg.3)
+    }
+}
+
+pub struct RenderableText {
+    text: String,
+    color_mod: ColorMod,
+}
+
 pub struct FontAtlas {
     texture: Texture,
     glyphs: HashMap<char, Rect>,
@@ -96,45 +117,25 @@ impl FontCache {
         }
     }
 
-    pub fn render_texture<'a, T: Into<&'a str>>(&mut self,
+    pub fn render_texture<'a, T: Into<&'a str>, M: Into<ColorMod>>(&mut self,
                                                 r: &mut Renderer,
                                                 key: T,
                                                 text: &str,
-                                                color_mod: Option<(u8, u8, u8, u8)>)
+                                                color_mod: Option<M>)
                                                 -> Result<Texture, String> {
         let key_str = key.into();
-        let mut font = self.cache.get_mut(key_str).ok_or_else(|| "Font not found".to_string())?;
+        {
+            let font = self.cache.get_mut(key_str).ok_or_else(|| "Font not found".to_string())?;
 
-        r.render_target()
-            .unwrap()
-            .create_and_set(PixelFormatEnum::RGBA8888,
-                            text.len() as u32 * font.max_size.0,
-                            font.max_size.1)
-            .unwrap();
-
-        let current_color_mod = font.texture.color_mod();
-        let current_alpha_mod = font.texture.alpha_mod();
-
-        if let Some((r_mod, g_mod, b_mod, a_mod)) = color_mod {
-            font.texture.set_color_mod(r_mod, g_mod, b_mod);
-            font.texture.set_alpha_mod(a_mod);
+            r.render_target()
+                .unwrap()
+                .create_and_set(PixelFormatEnum::RGBA8888,
+                                text.len() as u32 * font.max_size.0,
+                                font.max_size.1)
+                .unwrap();
         }
 
-        let mut current_x: i32 = 0;
-
-        for character in text.chars() {
-            r.copy(&font.texture,
-                      font.glyphs.get(&character).cloned(),
-                      Some(Rect::new(current_x, 0, font.max_size.0, font.max_size.1)))?;
-            current_x += font.max_size.0 as i32;
-        }
-
-        if color_mod.is_some() {
-            font.texture.set_color_mod(current_color_mod.0,
-                                       current_color_mod.1,
-                                       current_color_mod.2);
-            font.texture.set_alpha_mod(current_alpha_mod);
-        }
+        self.render_text(r, key_str, text, color_mod, 0, 0).unwrap();
 
         r.render_target()
             .unwrap()
@@ -143,11 +144,11 @@ impl FontCache {
             .ok_or_else(|| "Can not render texture!".to_string())
     }
 
-    pub fn render_text<'a, T: Into<&'a str>>(&mut self,
+    pub fn render_text<'a, T: Into<&'a str>, M: Into<ColorMod>>(&mut self,
                                              r: &mut Renderer,
                                              key: T,
                                              text: &str,
-                                             color_mod: Option<(u8, u8, u8, u8)>,
+                                             color_mod: Option<M>,
                                              x: i32,
                                              y: i32)
                                              -> Result<(), String> {
@@ -155,8 +156,9 @@ impl FontCache {
 
         let current_color_mod = font.texture.color_mod();
         let current_alpha_mod = font.texture.alpha_mod();
+        let color_mod = color_mod.map(|x| x.into());
 
-        if let Some((r_mod, g_mod, b_mod, a_mod)) = color_mod {
+        if let Some(ColorMod(r_mod, g_mod, b_mod, a_mod)) = color_mod {
             font.texture.set_color_mod(r_mod, g_mod, b_mod);
             font.texture.set_alpha_mod(a_mod);
         }

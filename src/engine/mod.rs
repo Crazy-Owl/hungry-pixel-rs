@@ -12,15 +12,15 @@ use sdl2::pixels::Color::RGB;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 
-use self::data::EngineData;
+use engine::data::EngineData;
 use super::msg::{Msg, MenuMsg};
 use engine::context::SDL2Context;
-use self::state::StateT;
+use engine::state::StateT;
 use game::state::pixel::GameState;
 use game::state::menu::{MenuState, MenuPosition};
 use game::state::static_string::StaticState;
 use game::state::options::OptionsState;
-use self::font::FontCache;
+use engine::font::{FontCache, ColorMod};
 use super::resources;
 
 
@@ -146,7 +146,7 @@ impl Engine {
             .render_texture(&mut self.renderer,
                             "default",
                             "This is a game about a pixel who is very hungry.",
-                            None)
+                            None::<ColorMod>)
             .unwrap();
         let textures: Vec<Texture> =
             vec![self.engine_data
@@ -154,22 +154,22 @@ impl Engine {
                      .render_texture(&mut self.renderer,
                                      "default",
                                      "This is a game about a pixel who is very hungry.",
-                                     None)
+                                     None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default", "So he eats...", None)
+                     .render_texture(&mut self.renderer, "default", "So he eats...", None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default", "And eats...", None)
+                     .render_texture(&mut self.renderer, "default", "And eats...", None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache
                      .render_texture(&mut self.renderer,
                                      "default",
                                      "He eats so much that he grows into a square!..",
-                                     None)
+                                     None::<ColorMod>)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
@@ -178,11 +178,11 @@ impl Engine {
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "GAME OVER", None)
+                     .render_texture(&mut self.renderer, "default-large", "GAME OVER", None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Unfortunately.", None)
+                     .render_texture(&mut self.renderer, "default-large", "Unfortunately.", None::<ColorMod>)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::MenuCommand(MenuMsg::ToMainMenu)))
     }
@@ -194,11 +194,11 @@ impl Engine {
                      .render_texture(&mut self.renderer,
                                      "default-large",
                                      "Congratulations!",
-                                     None)
+                                     None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "You've won!", None)
+                     .render_texture(&mut self.renderer, "default-large", "You've won!", None::<ColorMod>)
                      .unwrap()];
         Box::new(StaticState::new(textures, 1000, Msg::ShowCredits))
     }
@@ -207,11 +207,11 @@ impl Engine {
         let textures: Vec<Texture> =
             vec![self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Author:", None)
+                     .render_texture(&mut self.renderer, "default-large", "Author:", None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache
-                     .render_texture(&mut self.renderer, "default-large", "Crazy-Owl", None)
+                     .render_texture(&mut self.renderer, "default-large", "Crazy-Owl", None::<ColorMod>)
                      .unwrap(),
                  self.engine_data
                      .font_cache

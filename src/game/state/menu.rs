@@ -6,7 +6,7 @@ use sdl2::pixels::Color::*;
 use msg::Msg;
 use engine::data::EngineData;
 use engine::state::StateT;
-use engine::font::FontCache;
+use engine::font::{FontCache, ColorMod};
 use std::cmp;
 
 pub enum MenuPosition {
@@ -46,7 +46,7 @@ impl<'m, 'b> MenuState {
         let mut max_height: u32 = 0;
         for choice in choices {
             let text = choice.0.into();
-            let texture = font_cache.render_texture(r, "default", &text, None).unwrap();
+            let texture = font_cache.render_texture(r, "default", &text, None::<ColorMod>).unwrap();
             let query = texture.query();
             menu_items.push(MenuItem {
                 text: text,
@@ -61,7 +61,7 @@ impl<'m, 'b> MenuState {
         }
         let decoration_item = if let Some(s) = decoration_parameters {
             let text = s.into();
-            let texture = font_cache.render_texture(r, "default", &text, None).unwrap();
+            let texture = font_cache.render_texture(r, "default", &text, None::<ColorMod>).unwrap();
             let query = texture.query();
             Some(MenuItem {
                 text: text,
@@ -86,13 +86,13 @@ impl<'m, 'b> MenuState {
 
     pub fn rerender_menu_items(&mut self, r: &mut Renderer, fc: &mut FontCache) {
         for menu_item in &mut self.menu_items {
-            menu_item.texture = fc.render_texture(r, "default", &menu_item.text, None).unwrap();
+            menu_item.texture = fc.render_texture(r, "default", &menu_item.text, None::<ColorMod>).unwrap();
             let query = menu_item.texture.query();
             menu_item.dimensions = (query.width, query.height);
         }
 
         if let Some(ref mut decoration) = self.decoration {
-            decoration.texture = fc.render_texture(r, "default", &decoration.text, None).unwrap();
+            decoration.texture = fc.render_texture(r, "default", &decoration.text, None::<ColorMod>).unwrap();
             let query = decoration.texture.query();
             decoration.dimensions = (query.width, query.height);
         }
