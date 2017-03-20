@@ -3,7 +3,7 @@ use game::state::pixel::MOVEMENT_MAPPING;
 use msg::{Movement, Msg};
 use engine::data::EngineData;
 use engine::state::StateT;
-use engine::font::{FontCache, ColorMod};
+use engine::font::FontCache;
 
 use sdl2::render::{Renderer, Texture};
 use sdl2::keyboard::Keycode;
@@ -30,7 +30,7 @@ impl OptionsState {
                                   MenuPosition::Centered,
                                   Some("Options"),
                                   true);
-        let message = font_cache.render_texture(r, "default", "Press new control", None::<ColorMod>).unwrap();
+        let message = font_cache.render_texture(r, "default", "Press new control").unwrap();
         OptionsState {
             menu: menu,
             message: message,

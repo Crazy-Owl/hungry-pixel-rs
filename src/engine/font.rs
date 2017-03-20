@@ -11,6 +11,7 @@ use sdl2::surface::Surface;
 
 const GLYPH_SET: &'static str = "/\\| _-+=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!.,'\":;абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
 
+#[derive(Debug, Clone, Copy)]
 pub struct ColorMod(u8, u8, u8, u8);
 
 impl Default for ColorMod {
@@ -28,6 +29,38 @@ impl From<(u8, u8, u8, u8)> for ColorMod {
 pub struct RenderableText {
     text: String,
     color_mod: ColorMod,
+}
+
+impl RenderableText {
+    pub fn new<M: Into<String>>(s: M) -> RenderableText {
+        RenderableText {
+            text: s.into(),
+            color_mod: ColorMod::default(),
+        }
+    }
+
+    pub fn with_color<M: Into<String>, C: Into<ColorMod>>(s: M, cm: C) -> RenderableText {
+        RenderableText {
+            text: s.into(),
+            color_mod: cm.into(),
+        }
+    }
+
+    pub fn set_color(&mut self, cm: ColorMod) {
+        self.color_mod = cm;
+    }
+}
+
+impl Into<RenderableText> for String {
+    fn into(self) -> RenderableText {
+        RenderableText::new(self)
+    }
+}
+
+impl<'a> From<&'a str> for RenderableText {
+    fn from(m: &str) -> RenderableText {
+        RenderableText::new(String::from(m))
+    }
 }
 
 pub struct FontAtlas {
@@ -117,25 +150,24 @@ impl FontCache {
         }
     }
 
-    pub fn render_texture<'a, T: Into<&'a str>, M: Into<ColorMod>>(&mut self,
-                                                r: &mut Renderer,
-                                                key: T,
-                                                text: &str,
-                                                color_mod: Option<M>)
-                                                -> Result<Texture, String> {
+    pub fn render_texture<'a, T: Into<&'a str>, M: Into<RenderableText>>(&mut self,
+                          r: &mut Renderer,
+                          key: T,
+                          text: M) -> Result<Texture, String> {
         let key_str = key.into();
+        let renderable = text.into();
         {
             let font = self.cache.get_mut(key_str).ok_or_else(|| "Font not found".to_string())?;
 
             r.render_target()
                 .unwrap()
                 .create_and_set(PixelFormatEnum::RGBA8888,
-                                text.len() as u32 * font.max_size.0,
+                                renderable.text.len() as u32 * font.max_size.0,
                                 font.max_size.1)
                 .unwrap();
         }
 
-        self.render_text(r, key_str, text, color_mod, 0, 0).unwrap();
+        self.render_text(r, key_str, renderable, 0, 0).unwrap();
 
         r.render_target()
             .unwrap()
@@ -144,40 +176,36 @@ impl FontCache {
             .ok_or_else(|| "Can not render texture!".to_string())
     }
 
-    pub fn render_text<'a, T: Into<&'a str>, M: Into<ColorMod>>(&mut self,
-                                             r: &mut Renderer,
-                                             key: T,
-                                             text: &str,
-                                             color_mod: Option<M>,
-                                             x: i32,
-                                             y: i32)
-                                             -> Result<(), String> {
+    pub fn render_text<'a, T: Into<&'a str>, M: Into<RenderableText>>(&mut self,
+                                                                      r: &mut Renderer,
+                                                                      key: T,
+                                                                      text: M,
+                                                                      x: i32,
+                                                                      y: i32)
+                                                                      -> Result<(), String> {
         let font = self.cache.get_mut(key.into()).ok_or_else(|| "Font not found".to_string())?;
 
         let current_color_mod = font.texture.color_mod();
         let current_alpha_mod = font.texture.alpha_mod();
-        let color_mod = color_mod.map(|x| x.into());
+        let renderable = text.into();
 
-        if let Some(ColorMod(r_mod, g_mod, b_mod, a_mod)) = color_mod {
-            font.texture.set_color_mod(r_mod, g_mod, b_mod);
-            font.texture.set_alpha_mod(a_mod);
-        }
+        let ColorMod(r_mod, g_mod, b_mod, a_mod) = renderable.color_mod;
+        font.texture.set_color_mod(r_mod, g_mod, b_mod);
+        font.texture.set_alpha_mod(a_mod);
 
         let mut current_x: i32 = x;
 
-        for character in text.chars() {
+        for character in renderable.text.chars() {
             r.copy(&font.texture,
                       font.glyphs.get(&character).cloned(),
                       Some(Rect::new(current_x, y, font.max_size.0, font.max_size.1)))?;
             current_x += font.max_size.0 as i32;
         }
 
-        if color_mod.is_some() {
-            font.texture.set_color_mod(current_color_mod.0,
-                                       current_color_mod.1,
-                                       current_color_mod.2);
-            font.texture.set_alpha_mod(current_alpha_mod);
-        }
+        font.texture.set_color_mod(current_color_mod.0,
+                                   current_color_mod.1,
+                                   current_color_mod.2);
+        font.texture.set_alpha_mod(current_alpha_mod);
 
         Ok(())
     }
