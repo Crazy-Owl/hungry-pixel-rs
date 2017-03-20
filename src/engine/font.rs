@@ -51,9 +51,9 @@ impl RenderableText {
     }
 }
 
-impl Into<RenderableText> for String {
-    fn into(self) -> RenderableText {
-        RenderableText::new(self)
+impl From<String> for RenderableText {
+    fn from(s: String) -> RenderableText {
+        RenderableText::new(s)
     }
 }
 
