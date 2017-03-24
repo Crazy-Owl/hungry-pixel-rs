@@ -5,8 +5,6 @@ use sdl2::pixels::Color::*;
 use sdl2::keyboard::Keycode;
 
 use engine::state::StateT;
-use rand;
-
 use msg::{Msg, Movement, GameCommand, MenuMsg};
 use engine::data::EngineData;
 use super::player::Player;
@@ -67,13 +65,9 @@ impl GameState {
     }
 
     pub fn spawn_edible(&mut self, max_x: u32, max_y: u32) {
-        let coords = rand::random::<(u32, u32)>();
-        let size = rand::random::<u8>() %
-                   (self.settings.edible_bounds.1 - self.settings.edible_bounds.0);
-        let x = (coords.0 % max_x) as i32;
-        let y = (coords.1 % max_y) as i32;
-        let edible = Edible::new(x, y, (self.settings.edible_bounds.0 + size) as f32);
-        self.edibles.push(edible);
+        self.edibles.push(
+            Edible::random(max_x, max_y, self.settings.edible_bounds.0 as f32, self.settings.edible_bounds.1 as f32)
+        );
     }
 
     pub fn process_game_command(&mut self, c: GameCommand) -> Option<Msg> {
