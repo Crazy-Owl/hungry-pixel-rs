@@ -9,6 +9,7 @@ use msg::{Msg, Movement, GameCommand, MenuMsg};
 use engine::data::EngineData;
 use super::player::Player;
 use super::edible::Edible;
+use super::spike::Spike;
 
 lazy_static! {
     pub static ref MOVEMENT_MAPPING: Mutex<HashMap<Keycode, Movement>> = {
@@ -29,6 +30,8 @@ pub struct GameSettings {
     pub acceleration_rate: f32,
     pub edibles_spawn_rate: f32,
     pub edible_bounds: (u8, u8),
+    pub spikes_spawn_rate: f32,
+    pub spikes_bounds: (u32, u32),
 }
 
 impl GameSettings {
@@ -40,6 +43,8 @@ impl GameSettings {
             acceleration_rate: 100.0,
             edibles_spawn_rate: 3.0,
             edible_bounds: (15, 25),
+            spikes_spawn_rate: 10.0,
+            spikes_bounds: (15, 55),
         }
     }
 }
@@ -50,6 +55,8 @@ pub struct GameState {
     edible_eta: f32,
     edibles: Vec<Edible>,
     settings: GameSettings,
+    spike_eta: f32,
+    spikes: Vec<Spike>,
 }
 
 impl GameState {
@@ -60,14 +67,21 @@ impl GameState {
             player: Player::new(),
             edible_eta: settings.edibles_spawn_rate,
             edibles: Vec::new(),
+            spike_eta: settings.spikes_spawn_rate,
             settings: settings,
+            spikes: Vec::new(),
         }
     }
 
     pub fn spawn_edible(&mut self, max_x: u32, max_y: u32) {
-        self.edibles.push(
-            Edible::random(max_x, max_y, self.settings.edible_bounds.0 as f32, self.settings.edible_bounds.1 as f32)
-        );
+        self.edibles.push(Edible::random(max_x,
+                                         max_y,
+                                         self.settings.edible_bounds.0 as f32,
+                                         self.settings.edible_bounds.1 as f32));
+    }
+
+    pub fn spawn_spike(&mut self, max_x: i32, max_y: i32, min_size: u32, max_size: u32) {
+        self.spikes.push(Spike::random(max_x, max_y, min_size, max_size));
     }
 
     pub fn process_game_command(&mut self, c: GameCommand) -> Option<Msg> {
@@ -162,6 +176,15 @@ impl StateT for GameState {
                                           engine_data.window_size.1 - 25);
                         self.edible_eta = self.settings.edibles_spawn_rate;
                     }
+                    self.spike_eta -= (x as f32) / 1000.0;
+                    if self.spike_eta <= 0.0 {
+                        let spikes_bounds = self.settings.spikes_bounds;
+                        self.spawn_spike(engine_data.window_size.0 as i32,
+                                         engine_data.window_size.1 as i32,
+                                         spikes_bounds.0,
+                                         spikes_bounds.1);
+                        self.spike_eta = self.settings.spikes_spawn_rate;
+                    }
                     let mut to_remove = Vec::<usize>::new();
                     for edible_idx in 0..self.edibles.len() {
                         let edible = &mut self.edibles[edible_idx];
@@ -175,6 +198,9 @@ impl StateT for GameState {
                             self.player.size += edible.nutrition;
                             to_remove.push(edible_idx);
                         }
+                    }
+                    for spike in &mut self.spikes {
+                        spike.update(x as f32 / 1000.0, (engine_data.window_size.0 as f32, engine_data.window_size.1 as f32));
                     }
                     to_remove.sort();
                     to_remove.reverse();
@@ -210,8 +236,11 @@ impl StateT for GameState {
             .unwrap();
         r.set_draw_color(RGB(255, 128, 0));
         for edible in &self.edibles {
-            r.fill_rect(Some(edible.rect))
-                .unwrap();
+            r.fill_rect(Some(edible.rect)).unwrap();
+        }
+        r.set_draw_color(RGB(255, 0, 0));
+        for spike in &self.spikes {
+            r.fill_rect(Some(spike.rect)).unwrap();
         }
     }
 
