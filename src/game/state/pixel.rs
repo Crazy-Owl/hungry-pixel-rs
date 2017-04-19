@@ -185,27 +185,44 @@ impl StateT for GameState {
                                          spikes_bounds.1);
                         self.spike_eta = self.settings.spikes_spawn_rate;
                     }
-                    let mut to_remove = Vec::<usize>::new();
+                    let mut to_remove_edibles = Vec::<usize>::new();
                     for edible_idx in 0..self.edibles.len() {
                         let edible = &mut self.edibles[edible_idx];
                         edible.deteriorate(self.settings.edible_deterioration_rate * (x as f32) /
                                            1000.0);
                         if edible.nutrition <= 0.0 {
-                            to_remove.push(edible_idx);
+                            to_remove_edibles.push(edible_idx);
                             continue;
                         }
                         if self.player.rect.intersection(edible.rect).is_some() {
                             self.player.size += edible.nutrition;
-                            to_remove.push(edible_idx);
+                            to_remove_edibles.push(edible_idx);
                         }
                     }
-                    for spike in &mut self.spikes {
+
+                    let mut to_remove_spikes = Vec::<usize>::new();
+                    for spike_idx in 0..self.spikes.len() {
+                        let spike = &mut self.spikes[spike_idx];
                         spike.update(x as f32 / 1000.0, (engine_data.window_size.0 as f32, engine_data.window_size.1 as f32));
+                        if self.player.rect.intersection(spike.rect).is_some() {
+                            if self.player.size >= 40.0 {
+                                self.player.size -= 20.0;
+                            } else {
+                                self.player.size -= 0.5 * self.player.size;
+                            }
+                            to_remove_spikes.push(spike_idx);
+                        }
                     }
-                    to_remove.sort();
-                    to_remove.reverse();
-                    for removing_idx in to_remove {
+                    to_remove_edibles.sort();
+                    to_remove_edibles.reverse();
+                    for removing_idx in to_remove_edibles {
                         self.edibles.swap_remove(removing_idx);
+                    }
+
+                    to_remove_spikes.sort();
+                    to_remove_spikes.reverse();
+                    for removing_idx in to_remove_spikes {
+                        self.spikes.swap_remove(removing_idx);
                     }
 
                     if self.player.size >= (engine_data.window_size.1 as f32 / 2.0) {
