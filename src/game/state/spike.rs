@@ -13,11 +13,11 @@ pub struct Spike {
 }
 
 impl Spike {
-    pub fn new(x: i32, y: i32, w: u32, h: u32, direction: (i32, i32)) -> Spike {
+    pub fn new(x: i32, y: i32, w: u32, h: u32, direction: (i32, i32), speed: f32) -> Spike {
         Spike {
             x: x as f32,
             y: y as f32,
-            speed: 10.0,  // TODO: random speed
+            speed: speed,
             direction: direction,
             rect: Rect::new(x, y, w, h),
             dimensions: (w, h),
@@ -48,7 +48,9 @@ impl Spike {
             _ => unimplemented!(),
         };
 
-        Spike::new(x, y, size_x, size_y, direction)
+        let speed: f32 = rng.gen_range(0.0, 20.0);
+
+        Spike::new(x, y, size_x, size_y, direction, speed)
     }
 
     pub fn update(&mut self, dt: f32, bounds: (f32, f32)) {
